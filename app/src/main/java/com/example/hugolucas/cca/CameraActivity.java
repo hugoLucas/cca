@@ -5,12 +5,10 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.os.EnvironmentCompat;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.util.StringBuilderPrinter;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -28,16 +26,15 @@ import com.github.florent37.camerafragment.widgets.RecordButton;
 
 import java.io.File;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 public class CameraActivity extends AppCompatActivity {
 
-    private static final String TAG = "MyActivity";
-    public static final String FRAGMENT_TAG = "camera";
+    private static final String TAG = "CameraActivity";
+    private static final String FRAGMENT_TAG = "CAMERA";
+    private static final int CAMERA_PERMISSION = 100;
 
     @BindView(R.id.flash_switch_button)
     FlashSwitchView mFlashSwitchButton;
@@ -92,20 +89,32 @@ public class CameraActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Handles permissions for camera usage and makes sure the camera preview is visible if the
+     * application has sufficient permissions.
+     */
     public void buildCamera() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
+        String cameraPermission = Manifest.permission.CAMERA;
+        int permissionCheck = ActivityCompat.checkSelfPermission(this, cameraPermission);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            boolean explainPermission = ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    cameraPermission);
+
+            if (explainPermission){
+                /* Explain why we need this permission */
+            }else{
+                ActivityCompat.requestPermissions(this, new String[]{cameraPermission},
+                        CAMERA_PERMISSION);
+            }
+        }else {
+            addCamera();
         }
-        addCamera();
     }
 
+    /**
+     * Adds the camera preview to the Activity view and hooks up listeners for camera events and
+     * controls.
+     */
     @RequiresPermission(Manifest.permission.CAMERA)
     public void addCamera() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) !=
