@@ -3,6 +3,7 @@ package com.example.hugolucas.cca;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Environment;
@@ -40,6 +41,8 @@ public class CameraActivity extends AppCompatActivity {
     private static final String TAG = "CameraActivity";
     private static final String FRAGMENT_TAG = "CAMERA";
     private static final int CAMERA_PERMISSION = 100;
+
+    private static boolean displayOnce = false;
 
     @BindView(R.id.flash_switch_button)
     FlashSwitchView mFlashSwitchButton;
@@ -98,25 +101,30 @@ public class CameraActivity extends AppCompatActivity {
      * application has sufficient permissions.
      */
     public void buildCamera() {
-        String cameraPermission = Manifest.permission.CAMERA;
+        final String cameraPermission = Manifest.permission.CAMERA;
         int permissionCheck = ActivityCompat.checkSelfPermission(this, cameraPermission);
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             Log.v(TAG, "Camera permission not yet granted.");
             boolean explainPermission = ActivityCompat.shouldShowRequestPermissionRationale(this,
                     cameraPermission);
 
-            if (explainPermission){
+            if (explainPermission && !displayOnce) {
                 Log.v(TAG, "Permission explanation requested.");
-                AlertDialog.Builder builder = new AlertDialog.Builder(this, 0);
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 builder.setTitle("Camera Permission Explanation");
                 builder.setMessage("This application needs Camera permissions in order to take" +
                         "store images of unknown currencies.");
-                buildCamera();
-            }else{
-                Log.v(TAG, "Permission requested.");
-                ActivityCompat.requestPermissions(this, new String[]{cameraPermission},
-                        CAMERA_PERMISSION);
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        Log.v(TAG, "User has read permission explanation.");
+                        requestCameraPermission(cameraPermission);
+                    }
+                });
+                builder.show();
+                displayOnce = true;
             }
+            else
+                requestCameraPermission(cameraPermission);
         }else {
             addCamera();
         }
@@ -314,4 +322,16 @@ public class CameraActivity extends AppCompatActivity {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
+    /**
+     * Handles the application request for Camera access. Called by
+     * {@link CameraActivity#buildCamera()} in order to handle permission request after user has
+     * been notified of why the permission is needed.
+     *
+     * @param cameraPermission string value of camera permission
+     */
+    private void requestCameraPermission(String cameraPermission){
+        Log.v(TAG, "Permission requested.");
+        ActivityCompat.requestPermissions(this, new String[]{cameraPermission},
+                CAMERA_PERMISSION);
+    }
 }

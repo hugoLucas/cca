@@ -9,6 +9,7 @@
         <item name="android:textColorPrimary">@android:color/background_light</item>
         <item name="android:colorForeground">@color/colorAccent</item>
         <item name="android:navigationBarColor">@android:color/holo_blue_bright</item>
+        <item name="android:alertDialogTheme">@style/Theme.AppCompat.Light.Dialog.Alert</item>
     </style>
 
     <style name="CameraActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
