@@ -1,8 +1,12 @@
 package com.example.hugolucas.cca;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.view.ViewCompat;
@@ -26,6 +30,7 @@ import com.github.florent37.camerafragment.widgets.RecordButton;
 
 import java.io.File;
 import java.text.DateFormat;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
@@ -60,7 +65,6 @@ public class CameraActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        genPhotoStoragePath();
         buildCamera();
     }
 
@@ -97,17 +101,43 @@ public class CameraActivity extends AppCompatActivity {
         String cameraPermission = Manifest.permission.CAMERA;
         int permissionCheck = ActivityCompat.checkSelfPermission(this, cameraPermission);
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            Log.v(TAG, "Camera permission not yet granted.");
             boolean explainPermission = ActivityCompat.shouldShowRequestPermissionRationale(this,
                     cameraPermission);
 
             if (explainPermission){
-                /* Explain why we need this permission */
+                Log.v(TAG, "Permission explanation requested.");
+                AlertDialog.Builder builder = new AlertDialog.Builder(this, 0);
+                builder.setTitle("Camera Permission Explanation");
+                builder.setMessage("This application needs Camera permissions in order to take" +
+                        "store images of unknown currencies.");
+                buildCamera();
             }else{
+                Log.v(TAG, "Permission requested.");
                 ActivityCompat.requestPermissions(this, new String[]{cameraPermission},
                         CAMERA_PERMISSION);
             }
         }else {
             addCamera();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch(requestCode){
+
+            case CAMERA_PERMISSION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.v(TAG, "Camera permission granted.");
+                    buildCamera();
+                } else {
+                    Log.v(TAG, "Camera permission not granted.");
+                    Toast.makeText(getBaseContext(), "Please enable camera permissions to continue",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
         }
     }
 
@@ -283,4 +313,5 @@ public class CameraActivity extends AppCompatActivity {
     private boolean canFullyAccessExternalStorage(){
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
+
 }
