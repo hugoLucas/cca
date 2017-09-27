@@ -1,7 +1,7 @@
 package com.example.hugolucas.cca;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
-import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.*;
 
 import java.util.ArrayList;
@@ -47,6 +47,7 @@ public class ImagePreprocessor {
         }
 
         // Draw the largest contour
-        Rect largestRect = Imgproc.boundingRect(contours.get(largestContourIndex));
+        // Rect largestRect = Imgproc.boundingRect(contours.get(largestContourIndex));
+        Imgproc.drawContours(image, contours, largestContourIndex, new Scalar(0, 255, 0));
     }
 }
