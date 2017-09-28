@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.example.hugolucas.cca.ClassificationActivity">
+    tools:context="com.example.hugolucas.cca.ClassificationActivity"
+    android:orientation="vertical">
 
-</android.support.constraint.ConstraintLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Here's the Image!"
+        android:padding="30dp"/>
+
+    <ImageView
+        android:id="@+id/test_image_view"
+        android:layout_width="match_parent"
+        android:layout_height="400dp" />
+</LinearLayout>

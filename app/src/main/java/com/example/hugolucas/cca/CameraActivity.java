@@ -29,6 +29,8 @@ import com.github.florent37.camerafragment.widgets.RecordButton;
 
 import java.io.File;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -79,8 +81,8 @@ public class CameraActivity extends AppCompatActivity {
     @OnClick(R.id.record_button)
     public void onRecordButtonClicked() {
         final CameraFragmentApi cameraFragment = getCameraFragment();
-        String photoStoragePath = genPhotoStoragePath();
-        String photoLabel = genPhotoLabel();
+        final String photoStoragePath = genPhotoStoragePath();
+        final String photoLabel = genPhotoLabel();
 
         if (cameraFragment != null) {
             cameraFragment.takePhotoOrCaptureVideo(new CameraFragmentResultAdapter() {
@@ -93,12 +95,11 @@ public class CameraActivity extends AppCompatActivity {
                public void onPhotoTaken(byte[] bytes, String filePath) {
                    Toast.makeText(getBaseContext(), "onPhotoTaken " + filePath,
                            Toast.LENGTH_SHORT).show();
+                   startImageProcessing(filePath);
                }
            },
                     photoStoragePath, photoLabel);
         }
-
-        startImageProcessing(photoStoragePath, photoLabel);
     }
 
     /**
@@ -106,11 +107,10 @@ public class CameraActivity extends AppCompatActivity {
      * processing.
      *
      * @param photoPath     the path to the photo
-     * @param photoLabel    the label of the photo
      */
-    public void startImageProcessing(String photoPath, String photoLabel){
+    public void startImageProcessing(String photoPath){
         startActivityForResult(ClassificationActivity.genIntent(getApplicationContext(),
-                photoPath, photoLabel), CLASS_REQ_CODE);
+                photoPath), CLASS_REQ_CODE);
     }
 
     /**
@@ -304,7 +304,7 @@ public class CameraActivity extends AppCompatActivity {
      * @return a String label for the picture taken
      */
     private String genPhotoLabel(){
-        return "photo_" + DateFormat.getDateTimeInstance().format(new java.util.Date());
+        return "photo_" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
     }
 
     /**
@@ -314,7 +314,8 @@ public class CameraActivity extends AppCompatActivity {
      */
     private String genPhotoStoragePath(){
         if(canFullyAccessExternalStorage()){
-            File dir = getExternalFilesDir(Environment.DIRECTORY_DCIM);
+            File dir = Environment.getExternalStoragePublicDirectory(
+                    Environment.DIRECTORY_PICTURES);
             if (dir != null) {
                 Log.v(TAG, "Saving to external directory: " + dir.getAbsolutePath());
                 return dir.getAbsolutePath();
