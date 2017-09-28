@@ -2,10 +2,8 @@ package com.example.hugolucas.cca;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
@@ -40,7 +38,9 @@ public class CameraActivity extends AppCompatActivity {
 
     private static final String TAG = "CameraActivity";
     private static final String FRAGMENT_TAG = "CAMERA";
+
     private static final int CAMERA_PERMISSION = 100;
+    private static final int CLASS_REQ_CODE = 1;
 
     private static boolean displayOnce = false;
 
@@ -79,6 +79,8 @@ public class CameraActivity extends AppCompatActivity {
     @OnClick(R.id.record_button)
     public void onRecordButtonClicked() {
         final CameraFragmentApi cameraFragment = getCameraFragment();
+        String photoStoragePath = genPhotoStoragePath();
+        String photoLabel = genPhotoLabel();
 
         if (cameraFragment != null) {
             cameraFragment.takePhotoOrCaptureVideo(new CameraFragmentResultAdapter() {
@@ -89,11 +91,26 @@ public class CameraActivity extends AppCompatActivity {
 
                @Override
                public void onPhotoTaken(byte[] bytes, String filePath) {
-                   Toast.makeText(getBaseContext(), "onPhotoTaken " + filePath, Toast.LENGTH_SHORT).show();
+                   Toast.makeText(getBaseContext(), "onPhotoTaken " + filePath,
+                           Toast.LENGTH_SHORT).show();
                }
            },
-                    genPhotoStoragePath(), genPhotoLabel());
+                    photoStoragePath, photoLabel);
         }
+
+        startImageProcessing(photoStoragePath, photoLabel);
+    }
+
+    /**
+     * Once a photo has been taken by the user the photo should be passed to another Activity for
+     * processing.
+     *
+     * @param photoPath     the path to the photo
+     * @param photoLabel    the label of the photo
+     */
+    public void startImageProcessing(String photoPath, String photoLabel){
+        startActivityForResult(ClassificationActivity.genIntent(getApplicationContext(),
+                photoPath, photoLabel), CLASS_REQ_CODE);
     }
 
     /**
