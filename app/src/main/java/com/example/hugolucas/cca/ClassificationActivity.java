@@ -5,21 +5,20 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
 import android.widget.ImageView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 
 import static org.opencv.imgcodecs.Imgcodecs.imread;
 
@@ -28,12 +27,12 @@ public class ClassificationActivity extends AppCompatActivity {
     /* Keys for putting extras in an Intent */
     private static final String PATH = "com.example.hugolucas.cca.classification_activity.path";
     private final String TAG = "ClassificationActivity";
+
     private String mPhotoPath;
+    private ImagePreprocessor mProcessor;
 
     @BindView(R.id.test_image_view)
     ImageView frame;
-
-    private ImageView testView;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -42,7 +41,7 @@ public class ClassificationActivity extends AppCompatActivity {
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                    loadImage();
+                    extractBill();
                 } break;
                 default:
                 {
@@ -74,7 +73,7 @@ public class ClassificationActivity extends AppCompatActivity {
         Intent startingIntent = getIntent();
         mPhotoPath = startingIntent.getStringExtra(PATH);
 
-        testView = (ImageView) findViewById(R.id.test_image_view);
+        mProcessor = new ImagePreprocessor();
     }
 
     @Override
@@ -90,13 +89,20 @@ public class ClassificationActivity extends AppCompatActivity {
         }
     }
 
-    private void loadImage(){
-        Mat image = imread(mPhotoPath);
+    /**
+     * Handles the extraction of the banknote from the overall image.
+     */
+    private void extractBill(){
+        Mat image = mProcessor.loadImage(mPhotoPath);
+        Mat banknote = mProcessor.findBankNote(image);
+
+        displayMat(banknote);
+    }
+
+    private void displayMat(Mat image){
         Bitmap imageBitMap = Bitmap.createBitmap(image.cols(), image.rows(),
                 Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(image, imageBitMap);
-
         frame.setImageBitmap(imageBitMap);
-//        testView.setImageBitmap(imageBitMap);
     }
 }
