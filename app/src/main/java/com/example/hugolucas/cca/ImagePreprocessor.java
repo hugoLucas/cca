@@ -43,43 +43,21 @@ public class ImagePreprocessor {
     }
 
     public Mat findBankNote(Mat image){
-        Mat processedImage = new Mat();
+        Mat processedImage = image.clone();
+        processedImage = blurAndThreshold(processedImage);
+        List<MatOfPoint> imageContours = findAllContours(processedImage);
 
-        // Convert image to gray-scale
-        Imgproc.cvtColor(image, processedImage, Imgproc.COLOR_BGR2GRAY);
+        int largestContourIndex = findLargestContour(imageContours);
+        drawLargestContour(imageContours, largestContourIndex, image);
 
-        // Blur the image
-        Imgproc.blur(processedImage, processedImage, new Size(3, 3));
+        return image;
+    }
 
-        // Threshold the image to bring out the edges
-        Imgproc.threshold(processedImage, processedImage, 120.0, 256.0, Imgproc.THRESH_BINARY);
+    private void drawLargestContour(List<MatOfPoint> contourList, int largestContourIndex,
+                                    Mat image){
 
-        // Edge Detection
-        // Mat edges = new Mat(processedImage.size(), CvType.CV_8UC1);
-        // Imgproc.Canny(processedImage, edges, 70, 100);
-
-        // Create a list for storing contours
-        List<MatOfPoint> contours = new ArrayList<>();
-
-        // Find image contours
-        Mat hierarchy = new Mat();
-        Imgproc.findContours(processedImage, contours, hierarchy, Imgproc.RETR_TREE,
-                Imgproc.CHAIN_APPROX_NONE);
-
-        // Iterate through the contours and find the contour with the largest area
-        double largestContourArea = 0.0;
-        int largestContourIndex = 0;
-        for(int i = 0; i < contours.size(); i ++){
-            double contourArea = Imgproc.contourArea(contours.get(i));
-            if(contourArea > largestContourArea){
-                largestContourArea = contourArea;
-                largestContourIndex = i;
-            }
-        }
-
-        // Draw the largest contour
         MatOfPoint2f approxCurve = new MatOfPoint2f();
-        MatOfPoint2f contour2f = new MatOfPoint2f(contours.get(largestContourIndex).toArray());
+        MatOfPoint2f contour2f = new MatOfPoint2f(contourList.get(largestContourIndex).toArray());
         double approxDistance = Imgproc.arcLength(contour2f, true) * 0.02;
         Imgproc.approxPolyDP(contour2f, approxCurve, approxDistance, true);
         MatOfPoint points = new MatOfPoint(approxCurve.toArray());
@@ -87,6 +65,34 @@ public class ImagePreprocessor {
         Imgproc.rectangle(image, new Point(rectangle.x, rectangle.y),
                 new Point(rectangle.x + rectangle.width, rectangle.y + rectangle.height),
                 new Scalar(0, 255, 0), 3);
+    }
+
+    private int findLargestContour(List<MatOfPoint> contourList){
+        double largestContourArea = 0.0;
+        int largestContourIndex = 0;
+
+        for(int i = 0; i < contourList.size(); i ++){
+            double contourArea = Imgproc.contourArea(contourList.get(i));
+            if(contourArea > largestContourArea){
+                largestContourArea = contourArea;
+                largestContourIndex = i;
+            }
+        }
+        return largestContourIndex;
+    }
+
+    private List<MatOfPoint> findAllContours(Mat image){
+        Mat hierarchy = new Mat();
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_LIST,
+                Imgproc.CHAIN_APPROX_NONE);
+        return contours;
+    }
+
+    private Mat blurAndThreshold(Mat image){
+        Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.blur(image, image, new Size(3, 3));
+        Imgproc.threshold(image, image, 100, 256.0, Imgproc.THRESH_BINARY);
 
         return image;
     }
