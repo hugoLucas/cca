@@ -93,9 +93,7 @@ public class ClassificationActivity extends AppCompatActivity {
      * Handles the extraction of the banknote from the overall image.
      */
     private void extractBill(){
-        Mat image = mProcessor.loadImage(mPhotoPath);
-        Mat banknote = mProcessor.findBankNote(image);
-
+        Mat banknote = mProcessor.preprocessImage(mPhotoPath);
         displayMat(banknote);
     }
 
