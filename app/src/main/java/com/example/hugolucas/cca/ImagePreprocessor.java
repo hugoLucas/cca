@@ -27,6 +27,9 @@ import static org.opencv.imgcodecs.Imgcodecs.imread;
  *  1. Removes noise using bilateral filter
  *  2. Applies a Contrast Limited Adaptive Histogram Equalizer (CLAHE) to increase contrast
  *
+ * Algorithm taken from:  Recognition of Banknotes in Multiple Perspectives Using Selective Feature
+ * Matching and Shape Analysis
+ *
  * Created by hugolucas on 9/25/17.
  */
 
@@ -34,6 +37,14 @@ public class ImagePreprocessor {
 
     private final String TAG = "cca.preprocessor";
 
+    /**
+     * Method coordinates all the pre-processing steps of the image. First it finds the largest
+     * rectangular contour in order to locate the banknote. Next it takes the banknote and applies
+     * the pre-processing steps outlined in the paper outlining the classification algorithm.
+     *
+     * @param path      String path to the image taken by the application
+     * @return          returns a Mat of the banknote that has been filtered and equalized
+     */
     public Mat preprocessImage(String path){
         /* Load image into application */
         Mat image = loadImage(path);
@@ -41,10 +52,45 @@ public class ImagePreprocessor {
         /* Extract the banknote from the image */
         Mat bankNote = findBankNote(image);
 
+        /* Remove image noise */
+        Mat filteredImage = removeImageNoise(bankNote);
+
         /* Prepare image for classification */
+        Mat equalized = equalize(filteredImage);
 
+        return equalized;
+    }
 
-        return bankNote;
+    /**
+     * Applies a Contrast Limited Adaptive Histogram Equalizer to a Mat that has been filtered.
+     *
+     * @param image     filtered Mat image
+     * @return          equalized Mat
+     */
+    private Mat equalize(Mat image){
+        Mat equalized = new Mat();
+
+        Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2GRAY);
+        CLAHE claghe = Imgproc.createCLAHE(2.0, new Size(8, 8));
+        claghe.apply(image, equalized);
+
+        return equalized;
+    }
+
+    /**
+     * Applies a bilateral filter to the image in order to reduce noise.
+     *
+     * @param image     Mat to be filtered, banknote preferably
+     * @return          filtered Mat
+     */
+    private Mat removeImageNoise(Mat image){
+        Mat filterdImage = new Mat();
+        int bilateralFilterDistance = 8, bilateralFilterSigmaColor = 18,
+                bilateralFilterSigmaSpace = 12;
+        Imgproc.bilateralFilter(image, filterdImage, bilateralFilterDistance,
+                bilateralFilterSigmaColor, bilateralFilterSigmaSpace);
+
+        return filterdImage;
     }
 
     /**
@@ -76,13 +122,15 @@ public class ImagePreprocessor {
         processedImage = blurAndThreshold(processedImage);
         List<MatOfPoint> imageContours = findAllContours(processedImage);
         int largestContourIndex = findLargestContour(imageContours);
+
+        // drawLargestContour(imageContours, largestContourIndex, image);
         return extractLargestContour(imageContours, largestContourIndex, image);
     }
 
     /**
      * Using a list of contours previously calculated, the index of the largest contour by area,
-     * and the original un-processed image this method will extract the largest rectangle found in t
-     * he image. This rectangle should hopefully be the banknote needing classification.
+     * and the original un-processed image this method will extract the largest rectangle found in
+     * the image. This rectangle should hopefully be the banknote needing classification.
      *
      * @param contourList           a list of contours
      * @param largestContourIndex   the index which contains the largest contour by area
@@ -132,8 +180,8 @@ public class ImagePreprocessor {
     private List<MatOfPoint> findAllContours(Mat image){
         Mat hierarchy = new Mat();
         List<MatOfPoint> contours = new ArrayList<>();
-        Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_LIST,
-                Imgproc.CHAIN_APPROX_NONE);
+        Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_CCOMP,
+                Imgproc.CHAIN_APPROX_SIMPLE);
         return contours;
     }
 
@@ -146,7 +194,7 @@ public class ImagePreprocessor {
      */
     private Mat blurAndThreshold(Mat image){
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2GRAY);
-        Imgproc.blur(image, image, new Size(3, 3));
+        Imgproc.blur(image, image, new Size(5, 5));
         Imgproc.threshold(image, image, 100, 256.0, Imgproc.THRESH_BINARY);
 
         return image;
