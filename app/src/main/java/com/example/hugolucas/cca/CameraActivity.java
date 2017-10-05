@@ -28,7 +28,6 @@ import com.github.florent37.camerafragment.widgets.FlashSwitchView;
 import com.github.florent37.camerafragment.widgets.RecordButton;
 
 import java.io.File;
-import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -109,7 +108,7 @@ public class CameraActivity extends AppCompatActivity {
      * @param photoPath     the path to the photo
      */
     public void startImageProcessing(String photoPath){
-        startActivityForResult(ClassificationActivity.genIntent(getApplicationContext(),
+        startActivityForResult(ProcessingActivity.genIntent(getApplicationContext(),
                 photoPath), CLASS_REQ_CODE);
     }
 
