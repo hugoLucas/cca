@@ -23,7 +23,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ClassificationActivity"/>
+        <activity android:name=".ProcessingActivity"/>
     </application>
 
 </manifest>

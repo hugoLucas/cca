@@ -200,17 +200,17 @@ public class CameraActivity extends AppCompatActivity {
 
                     @Override
                     public void onFlashAuto() {
-                        mFlashSwitchButton.displayFlashAuto();
+
                     }
 
                     @Override
                     public void onFlashOn() {
-                        mFlashSwitchButton.displayFlashOn();
+
                     }
 
                     @Override
                     public void onFlashOff() {
-                        mFlashSwitchButton.displayFlashOff();
+
                     }
 
                     @Override
@@ -261,13 +261,11 @@ public class CameraActivity extends AppCompatActivity {
                     @Override
                     public void lockControls() {
                         mTakePictureButton.setEnabled(false);
-                        mFlashSwitchButton.setEnabled(false);
                     }
 
                     @Override
                     public void unLockControls() {
                         mTakePictureButton.setEnabled(true);
-                        mFlashSwitchButton.setEnabled(true);
                     }
 
                     @Override

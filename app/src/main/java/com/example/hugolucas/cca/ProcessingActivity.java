@@ -6,7 +6,6 @@ import android.graphics.Bitmap;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.ImageView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -14,23 +13,21 @@ import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
 
+import me.itangqi.waveloadingview.WaveLoadingView;
 
-import butterknife.BindView;
-import butterknife.ButterKnife;
-
-import static org.opencv.imgcodecs.Imgcodecs.imread;
 
 public class ProcessingActivity extends AppCompatActivity {
 
     /* Keys for putting extras in an Intent */
-    private static final String PATH = "com.example.hugolucas.cca.classification_activity.path";
+    private static final String PATH = "com.example.hugolucas.cca.processing_activity.path";
     private final String TAG = "ProcessingActivity";
 
     private String mPhotoPath;
-    private ImagePreprocessor mProcessor;
 
-    @BindView(R.id.test_image_view)
-    ImageView frame;
+    private ImagePreprocessor mProcessor;
+    private Classifier mClassifier;
+
+    private WaveLoadingView mWaveLoadingView;
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -39,7 +36,7 @@ public class ProcessingActivity extends AppCompatActivity {
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
-                    extractBill();
+                    startPreProcessing();
                 } break;
                 default:
                 {
@@ -65,13 +62,19 @@ public class ProcessingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_classification);
-        ButterKnife.bind(this);
+        setContentView(R.layout.activity_processing);
+//        ButterKnife.bind(this);
 
         Intent startingIntent = getIntent();
         mPhotoPath = startingIntent.getStringExtra(PATH);
 
         mProcessor = new ImagePreprocessor();
+        mClassifier = new Classifier();
+
+        mWaveLoadingView = (WaveLoadingView) findViewById(R.id.waveLoadingView);
+        mWaveLoadingView.setCenterTitle("Loading Image Libraries...");
+        mWaveLoadingView.setProgressValue(0);
+        mWaveLoadingView.startAnimation();
     }
 
     @Override
@@ -88,17 +91,29 @@ public class ProcessingActivity extends AppCompatActivity {
     }
 
     /**
-     * Handles the extraction of the banknote from the overall image.
+     * Handles the extraction of the banknote from the overall image and pass the result to the
+     * Classifier. This method handles the overall processing of an image taken by the User and
+     * updates the loading screen.
      */
-    private void extractBill(){
-        Mat banknote = mProcessor.preprocessImage(mPhotoPath);
-        displayMat(banknote);
+    private void startPreProcessing(){
+        Mat banknote = mProcessor.preprocessImage(mPhotoPath, mWaveLoadingView);
+
+        /* Display Mat image for debugging purposes */
+        // displayMat(banknote);
+
+
     }
 
+    /**
+     * Displays the Mat image loaded by the application and pre-processed by the ImagePreprocessor.
+     * Used for debugging, do not processed display image directly to User.
+     *
+     * @param image     a Mat of the image taken by the User for classification
+     */
     private void displayMat(Mat image){
         Bitmap imageBitMap = Bitmap.createBitmap(image.cols(), image.rows(),
                 Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(image, imageBitMap);
-        frame.setImageBitmap(imageBitMap);
+//        mLoadingFrame.setImageBitmap(imageBitMap);
     }
 }

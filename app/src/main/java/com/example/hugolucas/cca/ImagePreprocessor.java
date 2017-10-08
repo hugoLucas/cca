@@ -16,6 +16,8 @@ import org.opencv.imgproc.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import me.itangqi.waveloadingview.WaveLoadingView;
+
 import static org.opencv.imgcodecs.Imgcodecs.imread;
 
 /**
@@ -45,17 +47,25 @@ public class ImagePreprocessor {
      * @param path      String path to the image taken by the application
      * @return          returns a Mat of the banknote that has been filtered and equalized
      */
-    public Mat preprocessImage(String path){
+    public Mat preprocessImage(String path, WaveLoadingView loadingView){
         /* Load image into application */
+        loadingView.setCenterTitle("Loading Image...");
+        loadingView.setProgressValue(10);
         Mat image = loadImage(path);
 
         /* Extract the banknote from the image */
+        loadingView.setCenterTitle("Extracting Banknote...");
+        loadingView.setProgressValue(20);
         Mat bankNote = findBankNote(image);
 
         /* Remove image noise */
+        loadingView.setCenterTitle("Filtering Banknote...");
+        loadingView.setProgressValue(30);
         Mat filteredImage = removeImageNoise(bankNote);
 
         /* Prepare image for classification */
+        loadingView.setCenterTitle("Equalizing Banknote...");
+        loadingView.setProgressValue(40);
         Mat equalized = equalize(filteredImage);
 
         return equalized;
