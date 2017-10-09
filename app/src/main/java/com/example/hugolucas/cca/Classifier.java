@@ -3,6 +3,7 @@ package com.example.hugolucas.cca;
 import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
@@ -34,6 +35,8 @@ import me.itangqi.waveloadingview.WaveLoadingView;
 
 public class Classifier {
 
+    private static String TAG = "Classifier";
+
     private Context mContext;
     private WaveLoadingView mLoader;
 
@@ -43,10 +46,16 @@ public class Classifier {
     }
 
     public void classify(Mat image){
+        mLoader.setCenterTitle("Extracting banknote features...");
+        mLoader.setProgressValue(50);
+
         MatOfKeyPoint keyPoints = detectFeatures(image);
         MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);
 
         /*Mat output = drawKeyPoints(image, keyPoints);*/
+
+        mLoader.setCenterTitle("Matching banknote features...");
+        mLoader.setProgressValue(60);
         featureMatching(descriptors);
     }
 
@@ -58,7 +67,7 @@ public class Classifier {
      */
     private MatOfKeyPoint detectFeatures(Mat image){
         MatOfKeyPoint keyPoints = new MatOfKeyPoint();
-        FeatureDetector detector = FeatureDetector.create(FeatureDetector.SIFT);
+        FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
         detector.detect(image, keyPoints);
 
         return keyPoints;
@@ -66,7 +75,7 @@ public class Classifier {
 
     private MatOfKeyPoint getDescriptors(Mat image, MatOfKeyPoint keyPoints){
         MatOfKeyPoint descriptors = new MatOfKeyPoint();
-        DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.SIFT);
+        DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
         extractor.compute(image, keyPoints, descriptors);
 
         return descriptors;
@@ -77,6 +86,9 @@ public class Classifier {
         List<MatOfDMatch> matches = new LinkedList<>();
 
         String [] fileNames = loadImageDatabase();
+        int bestFit = -1;
+        String bestFitFilename = null;
+
         if (fileNames == null){
             return null;
         }else {
@@ -86,8 +98,14 @@ public class Classifier {
                 MatOfKeyPoint databaseDescriptors = getDescriptors(image, keyPoints);
 
                 matcher.knnMatch(targetDescriptors, databaseDescriptors, matches, 2);
+
+                if (matches.size() > bestFit){
+                    bestFit = matches.size();
+                    bestFitFilename = fileName;
+                }
             }
 
+            Log.v(TAG, bestFitFilename + " " + bestFit);
             return matches;
         }
     }
@@ -103,7 +121,7 @@ public class Classifier {
     private Mat loadImageAsset(String imageName){
         AssetManager manager = mContext.getAssets();
         try {
-            InputStream inputStream = manager.open(imageName);
+            InputStream inputStream = manager.open("currency_images/" + imageName);
             return readInputStreamIntoMat(inputStream);
 
         } catch (IOException e) {
@@ -114,7 +132,7 @@ public class Classifier {
     private String [] loadImageDatabase(){
         AssetManager manager = mContext.getAssets();
         try{
-            return manager.list("");
+            return manager.list("currency_images");
         }catch (IOException e){
             return null;
         }

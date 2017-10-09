@@ -101,7 +101,7 @@ public class ProcessingActivity extends AppCompatActivity {
         /* Display Mat image for debugging purposes */
         // displayMat(banknote);
 
-
+        mClassifier.classify(banknote);
     }
 
     /**
