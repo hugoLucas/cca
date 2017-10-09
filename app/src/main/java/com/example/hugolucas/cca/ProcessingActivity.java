@@ -68,13 +68,13 @@ public class ProcessingActivity extends AppCompatActivity {
         Intent startingIntent = getIntent();
         mPhotoPath = startingIntent.getStringExtra(PATH);
 
-        mProcessor = new ImagePreprocessor();
-        mClassifier = new Classifier();
-
         mWaveLoadingView = (WaveLoadingView) findViewById(R.id.waveLoadingView);
         mWaveLoadingView.setCenterTitle("Loading Image Libraries...");
         mWaveLoadingView.setProgressValue(0);
         mWaveLoadingView.startAnimation();
+
+        mProcessor = new ImagePreprocessor();
+        mClassifier = new Classifier(this.getApplicationContext(), mWaveLoadingView);
     }
 
     @Override
