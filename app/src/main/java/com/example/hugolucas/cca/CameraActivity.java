@@ -37,7 +37,7 @@ import butterknife.OnClick;
 
 public class CameraActivity extends AppCompatActivity {
 
-    private static final String TAG = "CameraActivity";
+    private static final String TAG = "hugo.CameraActivity";
     private static final String FRAGMENT_TAG = "CAMERA";
 
     private static final int CAMERA_PERMISSION = 100;

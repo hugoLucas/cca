@@ -2,7 +2,6 @@ package com.example.hugolucas.cca;
 
 import android.content.Context;
 import android.content.res.AssetManager;
-import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import org.opencv.core.Mat;
@@ -14,8 +13,7 @@ import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
-import org.opencv.features2d.FlannBasedMatcher;
-import org.opencv.imgcodecs.*;
+import org.opencv.highgui.Highgui;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -23,7 +21,6 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-import me.itangqi.waveloadingview.WaveLoadingView;
 
 /**
  * The Classifier class will handle the classification of the banknote image. By the end
@@ -35,27 +32,15 @@ import me.itangqi.waveloadingview.WaveLoadingView;
 
 public class Classifier {
 
-    private static String TAG = "Classifier";
+    private static String TAG = "hugo.Classifier";
 
     private Context mContext;
-    private WaveLoadingView mLoader;
-
-    public Classifier(Context appContext, WaveLoadingView loadingView){
-        mContext = appContext;
-        mLoader = loadingView;
-    }
 
     public void classify(Mat image){
-        mLoader.setCenterTitle("Extracting banknote features...");
-        mLoader.setProgressValue(50);
-
         MatOfKeyPoint keyPoints = detectFeatures(image);
         MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);
 
         /*Mat output = drawKeyPoints(image, keyPoints);*/
-
-        mLoader.setCenterTitle("Matching banknote features...");
-        mLoader.setProgressValue(60);
         featureMatching(descriptors);
     }
 
@@ -67,7 +52,7 @@ public class Classifier {
      */
     private MatOfKeyPoint detectFeatures(Mat image){
         MatOfKeyPoint keyPoints = new MatOfKeyPoint();
-        FeatureDetector detector = FeatureDetector.create(FeatureDetector.ORB);
+        FeatureDetector detector = FeatureDetector.create(FeatureDetector.SIFT);
         detector.detect(image, keyPoints);
 
         return keyPoints;
@@ -75,14 +60,14 @@ public class Classifier {
 
     private MatOfKeyPoint getDescriptors(Mat image, MatOfKeyPoint keyPoints){
         MatOfKeyPoint descriptors = new MatOfKeyPoint();
-        DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.ORB);
+        DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.SIFT);
         extractor.compute(image, keyPoints, descriptors);
 
         return descriptors;
     }
 
     private List<MatOfDMatch> featureMatching(MatOfKeyPoint targetDescriptors){
-        DescriptorMatcher matcher = FlannBasedMatcher.create(DescriptorMatcher.FLANNBASED);
+        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
         List<MatOfDMatch> matches = new LinkedList<>();
 
         String [] fileNames = loadImageDatabase();
@@ -144,8 +129,8 @@ public class Classifier {
 
     private static Mat readInputStreamIntoMat(InputStream inputStream) throws IOException {
         byte[] temporaryImageInMemory = readStream(inputStream);
-        return Imgcodecs.imdecode(new MatOfByte(temporaryImageInMemory),
-                Imgcodecs.IMREAD_GRAYSCALE);
+        return Highgui.imdecode(new MatOfByte(temporaryImageInMemory),
+                Highgui.IMREAD_GRAYSCALE);
     }
 
     private static byte[] readStream(InputStream stream) throws IOException {

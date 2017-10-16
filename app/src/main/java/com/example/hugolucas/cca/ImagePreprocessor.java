@@ -9,14 +9,13 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.highgui.Highgui;
 import org.opencv.imgproc.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import me.itangqi.waveloadingview.WaveLoadingView;
-
-import static org.opencv.imgcodecs.Imgcodecs.imread;
 
 /**
  * Class will handle the pre-processing of the input image. This class will not classify the image
@@ -35,7 +34,7 @@ import static org.opencv.imgcodecs.Imgcodecs.imread;
 
 public class ImagePreprocessor {
 
-    private final String TAG = "cca.preprocessor";
+    private final String TAG = "hugo.preprocessor";
 
     /**
      * Method coordinates all the pre-processing steps of the image. First it finds the largest
@@ -45,25 +44,17 @@ public class ImagePreprocessor {
      * @param path      String path to the image taken by the application
      * @return          returns a Mat of the banknote that has been filtered and equalized
      */
-    public Mat preprocessImage(String path, WaveLoadingView loadingView){
+    public Mat preprocessImage(String path){
         /* Load image into application */
-        loadingView.setCenterTitle("Loading Image...");
-        loadingView.setProgressValue(10);
         Mat image = loadImage(path);
 
         /* Extract the banknote from the image */
-        loadingView.setCenterTitle("Extracting Banknote...");
-        loadingView.setProgressValue(20);
         Mat bankNote = findBankNote(image);
 
         /* Remove image noise */
-        loadingView.setCenterTitle("Filtering Banknote...");
-        loadingView.setProgressValue(30);
         Mat filteredImage = removeImageNoise(bankNote);
 
         /* Prepare image for classification */
-        loadingView.setCenterTitle("Equalizing Banknote...");
-        loadingView.setProgressValue(40);
         Mat equalized = equalize(filteredImage);
 
         return equalized;
@@ -79,8 +70,12 @@ public class ImagePreprocessor {
         Mat equalized = new Mat();
 
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2GRAY);
-        CLAHE claghe = Imgproc.createCLAHE(2.0, new Size(8, 8));
-        claghe.apply(image, equalized);
+        Mat destination = new Mat(image.rows(), image.cols(), image.type());
+        Imgproc.equalizeHist(image, destination);
+
+       /* CLAHE claghe = Imgproc.createCLAHE(2.0, new Size(8, 8));
+        claghe.apply(image, equalized);*/
+
 
         return equalized;
     }
@@ -108,7 +103,7 @@ public class ImagePreprocessor {
      * @return          a Mat of the image file
      */
     private Mat loadImage(String path){
-        Mat image = imread(path);
+        Mat image = Highgui.imread(path);
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
 
         Log.v(TAG, "Image Rows: " + image.rows());
@@ -227,7 +222,7 @@ public class ImagePreprocessor {
         Imgproc.approxPolyDP(contour2f, approxCurve, approxDistance, true);
         MatOfPoint points = new MatOfPoint(approxCurve.toArray());
         Rect rectangle = Imgproc.boundingRect(points);
-        Imgproc.rectangle(image, new Point(rectangle.x, rectangle.y),
+        Core.rectangle(image, new Point(rectangle.x, rectangle.y),
                 new Point(rectangle.x + rectangle.width, rectangle.y + rectangle.height),
                 new Scalar(0, 255, 0), 3);
     }
