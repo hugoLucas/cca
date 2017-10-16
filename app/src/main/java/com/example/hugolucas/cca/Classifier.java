@@ -36,6 +36,10 @@ public class Classifier {
 
     private Context mContext;
 
+    public Classifier(Context c){
+        mContext = c;
+    }
+
     public void classify(Mat image){
         MatOfKeyPoint keyPoints = detectFeatures(image);
         MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);

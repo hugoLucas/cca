@@ -76,7 +76,7 @@ public class ProcessingActivity extends AppCompatActivity {
         mWaveLoadingView.startAnimation();
 
         mProcessor = new ImagePreprocessor();
-        mClassifier = new Classifier();
+        mClassifier = new Classifier(this.getApplicationContext());
     }
 
     @Override
