@@ -137,8 +137,6 @@ public class ProcessingActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             Log.v(TAG, "PP complete");
             updateLoadingIcon("Pre-processing complete...", 40);
-
-            displayMat(mBanknote, R.id.extracted_note);
             new ClassifierAsyncTask().execute();
         }
     }
