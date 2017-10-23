@@ -9,8 +9,9 @@
 
     <me.itangqi.waveloadingview.WaveLoadingView
         android:id="@+id/waveLoadingView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
         android:layout_marginTop="50dp"
         android:layout_marginBottom="50dp"
         app:wlv_borderColor="@color/colorAccent"
@@ -26,4 +27,19 @@
         app:wlv_titleCenterSize="24sp"
         app:wlv_waveAmplitude="25"
         app:wlv_waveColor="@color/colorAccent"/>
+
+    <ImageView
+        android:id="@+id/extracted_note"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="center"
+        android:background="@color/red_black"/>
+
+    <ImageView
+        android:id="@+id/currently_compared"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:layout_gravity="center"
+        android:background="@color/red_black"/>
 </LinearLayout>

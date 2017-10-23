@@ -9,6 +9,7 @@ import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
 import org.opencv.core.Scalar;
+import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
@@ -18,6 +19,7 @@ import org.opencv.highgui.Highgui;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -70,9 +72,8 @@ public class Classifier {
         return descriptors;
     }
 
-    private List<MatOfDMatch> featureMatching(MatOfKeyPoint targetDescriptors){
+    private String featureMatching(MatOfKeyPoint targetDescriptors){
         DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
-        List<MatOfDMatch> matches = new LinkedList<>();
 
         String [] fileNames = loadImageDatabase();
         int bestFit = -1;
@@ -82,20 +83,37 @@ public class Classifier {
             return null;
         }else {
             for (String fileName : fileNames) {
+                List<MatOfDMatch> matches = new LinkedList<>();
+
                 Mat image = loadImageAsset(fileName);
+
+                Log.v(TAG, fileName + " cols = " + image.cols());
+                Log.v(TAG, fileName + " rows = " + image.rows());
+
                 MatOfKeyPoint keyPoints = detectFeatures(image);
                 MatOfKeyPoint databaseDescriptors = getDescriptors(image, keyPoints);
 
                 matcher.knnMatch(targetDescriptors, databaseDescriptors, matches, 2);
 
-                if (matches.size() > bestFit){
-                    bestFit = matches.size();
+                LinkedList<DMatch> good_matches = new LinkedList<>();
+                for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
+                    MatOfDMatch matOfDMatch = iterator.next();
+                    if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 0.9) {
+                        good_matches.add(matOfDMatch.toArray()[0]);
+                    }
+                }
+
+                if (good_matches.size() > bestFit){
+                    bestFit = good_matches.size();
                     bestFitFilename = fileName;
                 }
             }
 
+            Log.v(TAG, "*** BEST FIT ***");
             Log.v(TAG, bestFitFilename + " " + bestFit);
-            return matches;
+            Log.v(TAG, "*** BEST FIT ***");
+
+            return bestFitFilename;
         }
     }
 

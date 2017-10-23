@@ -15,8 +15,6 @@ import org.opencv.imgproc.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import me.itangqi.waveloadingview.WaveLoadingView;
-
 /**
  * Class will handle the pre-processing of the input image. This class will not classify the image
  * of the banknote, instead it will perform operations on the image in order to make the
@@ -57,6 +55,9 @@ public class ImagePreprocessor {
         /* Prepare image for classification */
         Mat equalized = equalize(filteredImage);
 
+        Log.v(TAG, "Image Rows: " + equalized.rows());
+        Log.v(TAG, "Image Columns: " + equalized.cols());
+
         return equalized;
     }
 
@@ -77,7 +78,7 @@ public class ImagePreprocessor {
         claghe.apply(image, equalized);*/
 
 
-        return equalized;
+        return image;
     }
 
     /**
@@ -108,8 +109,8 @@ public class ImagePreprocessor {
 
         Log.v(TAG, "Image Rows: " + image.rows());
         Log.v(TAG, "Image Columns: " + image.cols());
-        if (image.rows() < image.cols())
-            Core.flip(image.t(), image, 1);
+        /*if (image.rows() < image.cols())
+            Core.flip(image.t(), image, 1);*/
 
         return image;
     }

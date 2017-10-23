@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.ImageView;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -103,10 +104,14 @@ public class ProcessingActivity extends AppCompatActivity {
      *
      * @param image     a Mat of the image taken by the User for classification
      */
-    private void displayMat(Mat image){
+    private void displayMat(Mat image, int id){
         Bitmap imageBitMap = Bitmap.createBitmap(image.cols(), image.rows(),
                 Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(image, imageBitMap);
+
+        ImageView view = (ImageView) findViewById(id);
+        view.setImageBitmap(imageBitMap);
+
     }
 
     private class PreProcessorAsyncTask extends AsyncTask<String, Integer, Void>{
@@ -123,6 +128,7 @@ public class ProcessingActivity extends AppCompatActivity {
             Log.v(TAG, "PP running");
             String path = strings[0];
             mBanknote = mProcessor.preprocessImage(path);
+
             return null;
         }
 
@@ -132,6 +138,7 @@ public class ProcessingActivity extends AppCompatActivity {
             Log.v(TAG, "PP complete");
             updateLoadingIcon("Pre-processing complete...", 40);
 
+            displayMat(mBanknote, R.id.extracted_note);
             new ClassifierAsyncTask().execute();
         }
     }
