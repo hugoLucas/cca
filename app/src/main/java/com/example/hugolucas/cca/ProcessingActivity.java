@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -143,6 +144,7 @@ public class ProcessingActivity extends AppCompatActivity {
 
     private class ClassifierAsyncTask extends AsyncTask<Void, Void, Void>{
 
+        private String mClassification;
 
         @Override
         protected void onPreExecute() {
@@ -154,7 +156,7 @@ public class ProcessingActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             Log.v(TAG, "C running");
-            mClassifier.classify(mBanknote);
+            mClassification = mClassifier.classify(mBanknote);
             return null;
         }
 
@@ -163,6 +165,7 @@ public class ProcessingActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             Log.v(TAG, "C complete");
             updateLoadingIcon("Classification Complete..", 80);
+            Toast.makeText(getApplicationContext(), mClassification, Toast.LENGTH_LONG).show();
         }
     }
 }

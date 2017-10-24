@@ -42,12 +42,12 @@ public class Classifier {
         mContext = c;
     }
 
-    public void classify(Mat image){
+    public String classify(Mat image){
         MatOfKeyPoint keyPoints = detectFeatures(image);
         MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);
 
         /*Mat output = drawKeyPoints(image, keyPoints);*/
-        featureMatching(descriptors);
+        return featureMatching(descriptors);
     }
 
     /**
