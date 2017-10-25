@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="/media/hugolucas/5F51-D173/CCA/opencv/src/main/assets"/><source path="/media/hugolucas/5F51-D173/CCA/opencv/build/generated/assets/shaders/debug"/></dataSet><dataSet config="debug"><source path="/media/hugolucas/5F51-D173/CCA/opencv/src/debug/assets"/></dataSet></merger>
+<merger version="3"><dataSet config="main"><source path="/media/hugo/5F51-D173/CCA/opencv/src/main/assets"/><source path="/media/hugo/5F51-D173/CCA/opencv/build/generated/assets/shaders/debug"/></dataSet><dataSet config="debug"><source path="/media/hugo/5F51-D173/CCA/opencv/src/debug/assets"/></dataSet></merger>

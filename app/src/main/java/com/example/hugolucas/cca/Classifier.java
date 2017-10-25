@@ -46,7 +46,6 @@ public class Classifier {
         MatOfKeyPoint keyPoints = detectFeatures(image);
         MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);
 
-        /*Mat output = drawKeyPoints(image, keyPoints);*/
         return featureMatching(descriptors);
     }
 

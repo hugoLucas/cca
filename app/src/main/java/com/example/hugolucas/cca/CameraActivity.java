@@ -182,31 +182,11 @@ public class CameraActivity extends AppCompatActivity {
         final String cameraPermission = Manifest.permission.CAMERA;
         int permissionCheck = ActivityCompat.checkSelfPermission(this, cameraPermission);
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            /*Log.v(TAG, "Camera permission not yet granted.");
-            boolean explainPermission = ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    cameraPermission);
-
-            if (explainPermission && !displayCameraExplanationOnce) {
-                Log.v(TAG, "Permission explanation requested.");
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Camera Permission Explanation");
-                builder.setMessage("This application needs Camera permissions in order to take" +
-                        "store images of unknown currencies.");
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        Log.v(TAG, "User has read permission explanation.");
-                        requestCameraPermission(cameraPermission);
-                    }
-                });
-                builder.show();
-                displayCameraExplanationOnce = true;
-            }
-            else
-                requestCameraPermission(cameraPermission);*/
             askForPermission("Camera Permission", cameraPermission,
                     "This application needs Camera permissions in order to take store images of " +
                             "unknown currencies.", CAMERA_PERMISSION, this);
-        }else
+        }
+        else
             addCamera();
     }
 
