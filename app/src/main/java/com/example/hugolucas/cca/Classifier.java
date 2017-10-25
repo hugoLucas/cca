@@ -90,10 +90,11 @@ public class Classifier {
                 Log.v(TAG, fileName + " cols = " + image.cols());
                 Log.v(TAG, fileName + " rows = " + image.rows());
 
+                Log.v(TAG, "Matching image features...");
                 MatOfKeyPoint keyPoints = detectFeatures(image);
                 MatOfKeyPoint databaseDescriptors = getDescriptors(image, keyPoints);
-
                 matcher.knnMatch(targetDescriptors, databaseDescriptors, matches, 2);
+                Log.v(TAG, "Image features matched!");
 
                 LinkedList<DMatch> good_matches = new LinkedList<>();
                 for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
@@ -126,11 +127,12 @@ public class Classifier {
     }
 
     private Mat loadImageAsset(String imageName){
+        Log.v(TAG, "Loading image " + imageName + "...");
         AssetManager manager = mContext.getAssets();
         try {
             InputStream inputStream = manager.open("currency_images/" + imageName);
+            Log.v(TAG, "Image " + imageName + " loaded successfully!");
             return readInputStreamIntoMat(inputStream);
-
         } catch (IOException e) {
             return null;
         }
