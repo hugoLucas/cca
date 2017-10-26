@@ -43,7 +43,7 @@ public class Classifier {
     }
 
     public String classify(Mat image){
-        MatOfKeyPoint keyPoints = detectFeatures(image);
+        MatOfKeyPoint keyPoints = detectFeatures(image, null);
         MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);
 
         return featureMatching(descriptors);
@@ -55,10 +55,14 @@ public class Classifier {
      * @param image     the image to apply SIFT to
      * @return          a MatOfKeyPoint representing the features detected
      */
-    private MatOfKeyPoint detectFeatures(Mat image){
+    private MatOfKeyPoint detectFeatures(Mat image, Mat mask){
         MatOfKeyPoint keyPoints = new MatOfKeyPoint();
         FeatureDetector detector = FeatureDetector.create(FeatureDetector.SIFT);
-        detector.detect(image, keyPoints);
+
+        if (mask == null)
+            detector.detect(image, keyPoints);
+        else
+            detector.detect(image, keyPoints, mask);
 
         return keyPoints;
     }
@@ -84,16 +88,14 @@ public class Classifier {
             for (String fileName : fileNames) {
                 List<MatOfDMatch> matches = new LinkedList<>();
 
-                Mat image = loadImageAsset(fileName);
+                Mat image = loadAsset(fileName, "images/");
+                Mat mask = loadAsset(fileName, "masks/");
 
-                Log.v(TAG, fileName + " cols = " + image.cols());
-                Log.v(TAG, fileName + " rows = " + image.rows());
-
-                Log.v(TAG, "Matching image features...");
-                MatOfKeyPoint keyPoints = detectFeatures(image);
+                Log.v(TAG, "Matching" + fileName + "features...");
+                MatOfKeyPoint keyPoints = detectFeatures(image, mask);
                 MatOfKeyPoint databaseDescriptors = getDescriptors(image, keyPoints);
                 matcher.knnMatch(targetDescriptors, databaseDescriptors, matches, 2);
-                Log.v(TAG, "Image features matched!");
+                Log.v(TAG, fileName + " features matched!");
 
                 LinkedList<DMatch> good_matches = new LinkedList<>();
                 for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
@@ -125,13 +127,14 @@ public class Classifier {
         return outputImage;
     }
 
-    private Mat loadImageAsset(String imageName){
-        Log.v(TAG, "Loading image " + imageName + "...");
+    private Mat loadAsset(String assetName, String assetDirectory){
+        Log.v(TAG, "Loading asset " + assetName + "...");
         AssetManager manager = mContext.getAssets();
         try {
-            InputStream inputStream = manager.open("currency_images/" + imageName);
-            Log.v(TAG, "Image " + imageName + " loaded successfully!");
-            return readInputStreamIntoMat(inputStream);
+            InputStream imageStream = manager.open("currency_images/" + assetDirectory + "/" +
+                    assetName);
+            Log.v(TAG, "Asset " + assetName + " loaded successfully!");
+            return readInputStreamIntoMat(imageStream);
         } catch (IOException e) {
             return null;
         }
