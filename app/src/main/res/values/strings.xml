@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">CCA</string>
+    <string name="country_label">Country of Origin</string>
+    <string name="country_result_placeholder">Insert Country Here</string>
+    <string name="denomination_label">Denomination</string>
+    <string name="value_result_placeholder">100</string>
+    <string name="map_fragment_button_label">Map</string>
+    <string name="exchange_fragment_button_label">Exchange</string>
 </resources>
