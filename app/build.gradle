@@ -30,6 +30,7 @@ dependencies {
     compile 'com.github.florent37:camerafragment:1.0.7'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'me.itangqi.waveloadingview:library:0.3.5'
+    compile 'com.mapbox.mapboxsdk:mapbox-android-sdk:5.2.0-beta.2@aar'
     testCompile 'junit:junit:4.12'
     compile project(':opencv')
 }
