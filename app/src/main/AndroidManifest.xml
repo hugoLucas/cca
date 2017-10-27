@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.example.hugolucas.cca.CameraActivity"
+            android:name="com.example.hugolucas.cca.DebugActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,6 +27,7 @@
         </activity>
 
         <activity android:name=".ProcessingActivity"/>
+        <activity android:name=".CameraActivity"/>
     </application>
 
 </manifest>

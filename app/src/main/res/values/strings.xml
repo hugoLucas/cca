@@ -6,4 +6,6 @@
     <string name="value_result_placeholder">100</string>
     <string name="map_fragment_button_label">Map</string>
     <string name="exchange_fragment_button_label">Exchange</string>
+    <string name="options_menu_title">Options Menu</string>
+    <string name="search_radius_title">Search Radius</string>
 </resources>
