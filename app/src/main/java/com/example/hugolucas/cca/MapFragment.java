@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -11,6 +12,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,6 +51,9 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     private MapboxMap mMapBoxMap;
     private MarkerOptions mMarker;
     private GoogleApiClient mGoogleApiClient;
+
+    /* Radius is in meters */
+    private String mDefaultSearchRadius = "10000";
 
     private boolean mFirstCameraUpdate = true;
 
@@ -152,12 +157,22 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     private void updateMapCamera(){
         if (mFirstCameraUpdate) {
             mMapView.setCameraDistance(20);
-            mMapBoxMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder()
-                    .target(mLatLng).zoom(15).bearing(180).tilt(30).build()), 7000);
+            mMapBoxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                    new CameraPosition.Builder()
+                            .target(mLatLng)
+                            .zoom(15)
+                            .bearing(180)
+                            .tilt(30)
+                            .build()), 7000);
             mFirstCameraUpdate = false;
         }
     }
 
+    /**
+     * Adds a marker to signify where the user is located if one does not exist already.
+     *
+     * @param clearOldMarkers   if True clears the map of all markers
+     */
     private void addUserMarker(boolean clearOldMarkers){
         if (clearOldMarkers)
             mMapBoxMap.clear();
@@ -166,6 +181,30 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 .position(mLatLng)
                 .title(getString(R.string.map_user_title));
         mMapBoxMap.addMarker(mMarker);
+    }
+
+    /**
+     * Creates the URL to send to the Google Maps API for the location of nearby financial
+     * institutions.
+     *
+     * @return      a String URL
+     */
+    private String createQueryURL(){
+        Uri.Builder urlBuilder = new Uri.Builder();
+        urlBuilder.scheme("https")
+                .authority("maps.googleapis.com")
+                .appendPath("maps")
+                .appendPath("api")
+                .appendPath("place")
+                .appendPath("nearbysearch")
+                .appendPath("json")
+                .appendQueryParameter("location", Double.toString(mLatLng.getLatitude()) + "," +
+                        Double.toString(mLatLng.getLongitude()))
+                .appendQueryParameter("radius", mDefaultSearchRadius)
+                .appendQueryParameter("type", "bank")
+                .appendQueryParameter("sensor", "true")
+                .appendQueryParameter("key", getString(R.string.google_maps_api_key));
+        return urlBuilder.build().toString();
     }
 
     @Override
@@ -185,6 +224,55 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
             }
         }
     }
+
+    /* ****************************************************************************************** */
+    /* CONNECTION CALLBACKS METHODS  */
+    /* ****************************************************************************************** */
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        LocationRequest request = createRequest();
+        int permissionStatus = ContextCompat.checkSelfPermission(getContext(),
+                Manifest.permission.ACCESS_FINE_LOCATION);
+
+        if (permissionStatus == PackageManager.PERMISSION_GRANTED){
+            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request,
+                    this);
+        }
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    /* ****************************************************************************************** */
+    /* ON CONNECTION FAILED LISTENER METHODS  */
+    /* ****************************************************************************************** */
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        Toast.makeText(getContext(), "Connection Failed", Toast.LENGTH_LONG).show();
+    }
+
+    /* ****************************************************************************************** */
+    /* LOCATION LISTENER METHODS  */
+    /* ****************************************************************************************** */
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+        Log.v("DEBUG", createQueryURL());
+        if(mMarker != null)
+            addUserMarker(true);
+        else
+            addUserMarker(false);
+        updateMapCamera();
+    }
+
+    /* ****************************************************************************************** */
+    /* LIFE CYCLE METHODS, OVERWRITTEN FOR MAP VIEW COMPARABILITY */
+    /* ****************************************************************************************** */
 
     @Override
     public void onStart() {
@@ -229,37 +317,5 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mMapView.onSaveInstanceState(outState);
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        LocationRequest request = createRequest();
-        int permissionStatus = ContextCompat.checkSelfPermission(getContext(),
-                Manifest.permission.ACCESS_FINE_LOCATION);
-
-        if (permissionStatus == PackageManager.PERMISSION_GRANTED){
-            LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, request,
-                    this);
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        Toast.makeText(getContext(), "Connection Failed", Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-        if(mMarker != null)
-            addUserMarker(true);
-        else
-            addUserMarker(false);
-        updateMapCamera();
     }
 }
