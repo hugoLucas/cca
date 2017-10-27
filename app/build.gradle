@@ -34,4 +34,5 @@ dependencies {
     compile 'com.mapbox.mapboxsdk:mapbox-android-sdk:5.2.0-beta.2@aar'
     testCompile 'junit:junit:4.12'
     compile project(':opencv')
+    compile 'com.android.support:support-v13:26.0.0-alpha1'
 }
