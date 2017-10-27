@@ -19,4 +19,7 @@
         provide you with nearby banks, and other financial institutions, that can exchange
         currencies.</string>
     <string name="loc_denied">Enable this permission in order to continue.</string>
+
+    <!--MapBox MapView Strings-->
+    <string name="map_user_title">Your Location</string>
 </resources>
