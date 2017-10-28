@@ -1,29 +1,39 @@
 package com.example.hugolucas.cca;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import com.example.hugolucas.cca.api.GoogleMaps;
+import com.example.hugolucas.cca.apiObjects.LocationResponse;
+import com.example.hugolucas.cca.apiObjects.Result;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.annotations.Icon;
+import com.mapbox.mapboxsdk.annotations.IconFactory;
+import com.mapbox.mapboxsdk.annotations.Marker;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
 import com.mapbox.mapboxsdk.camera.CameraPosition;
 import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
@@ -32,8 +42,15 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
+import java.util.List;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 
 /**
@@ -43,19 +60,29 @@ import butterknife.ButterKnife;
 public class MapFragment extends Fragment implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
+    private static final String TAG = "mapFragment";
+
     private final static int FINE_LOCATION_CODE = 100;
 
     @BindView(R.id.mapView) MapView mMapView;
 
+    private Marker mMarker;
     private LatLng mLatLng;
     private MapboxMap mMapBoxMap;
-    private MarkerOptions mMarker;
+    private MarkerOptions mMarkerOptions;
     private GoogleApiClient mGoogleApiClient;
 
     /* Radius is in meters */
     private String mDefaultSearchRadius = "10000";
 
     private boolean mFirstCameraUpdate = true;
+    private boolean mUpdateNearbyLocations = true;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Nullable
     @Override
@@ -88,6 +115,64 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 }
             }
         });
+    }
+
+    /**
+     * Asynchronously queries the Google Maps API for the locations of nearby financial
+     * institutions. Once a positive result has been received, method updates the MapView with the
+     * locations of these new places.
+     */
+    private void getNearbyLocationData(){
+        if (mUpdateNearbyLocations) {
+            Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl("https://maps.googleapis.com/maps/")
+                    .addConverterFactory(GsonConverterFactory.create())
+                    .build();
+
+            GoogleMaps map = retrofit.create(GoogleMaps.class);
+            Call<LocationResponse> call = map.nearbyLocations(
+                    "true",
+                    getString(R.string.google_maps_api_key),
+                    "bank",
+                    Double.toString(mLatLng.getLatitude()) + "," + Double.toString(mLatLng.getLongitude()),
+                    mDefaultSearchRadius);
+            call.enqueue(new Callback<LocationResponse>() {
+                @Override
+                public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
+                    if (response.body().getStatus().equals("OK")){
+                        List<Result> results = response.body().getResults();
+                        placeLocationMarkers(results);
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<LocationResponse> call, Throwable t) {
+                    Toast.makeText(getActivity(), "Error :(", Toast.LENGTH_LONG).show();
+                }
+            });
+            mUpdateNearbyLocations = false;
+        }
+    }
+
+    /**
+     * Using the results from the Google Maps API, this method populates the MapView with the
+     * locations of the financial institutions.
+     *
+     * @param results   a list of Result objects from the Google Maps API
+     */
+    public void placeLocationMarkers(List<Result> results){
+        Icon icon = drawableToIcon(getContext(), R.drawable.map_icon_bank);
+
+        for(Result res: results){
+            com.example.hugolucas.cca.apiObjects.Location loc = res.getGeometry().getLocation();
+
+            MarkerOptions newMarker = new MarkerOptions()
+                    .position(new LatLng(loc.getLat(), loc.getLng()))
+                    .title(res.getName())
+                    .setSnippet(res.getVicinity())
+                    .setIcon(icon);
+            mMapBoxMap.addMarker(newMarker);
+        }
     }
 
     /**
@@ -163,48 +248,41 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                             .zoom(15)
                             .bearing(180)
                             .tilt(30)
-                            .build()), 7000);
+                            .build()), 3000);
             mFirstCameraUpdate = false;
         }
     }
 
     /**
      * Adds a marker to signify where the user is located if one does not exist already.
-     *
-     * @param clearOldMarkers   if True clears the map of all markers
      */
-    private void addUserMarker(boolean clearOldMarkers){
-        if (clearOldMarkers)
-            mMapBoxMap.clear();
-
-        mMarker = new MarkerOptions()
-                .position(mLatLng)
-                .title(getString(R.string.map_user_title));
-        mMapBoxMap.addMarker(mMarker);
+    private void addUserMarker(){
+        if (mMarker == null) {
+            mMarkerOptions = new MarkerOptions()
+                    .position(mLatLng)
+                    .title(getString(R.string.map_user_title));
+            mMapBoxMap.addMarker(mMarkerOptions);
+            mMarker = mMapBoxMap.getMarkers().get(0);
+        }else{
+            mMarker.setPosition(mLatLng);
+        }
     }
 
     /**
-     * Creates the URL to send to the Google Maps API for the location of nearby financial
-     * institutions.
+     * Converts an vector image into a bitmap. Used to supply MapView with custom icons.
      *
-     * @return      a String URL
+     * @param context       application context
+     * @param id            resource id of vector asset
+     * @return              icon made from the drawable
      */
-    private String createQueryURL(){
-        Uri.Builder urlBuilder = new Uri.Builder();
-        urlBuilder.scheme("https")
-                .authority("maps.googleapis.com")
-                .appendPath("maps")
-                .appendPath("api")
-                .appendPath("place")
-                .appendPath("nearbysearch")
-                .appendPath("json")
-                .appendQueryParameter("location", Double.toString(mLatLng.getLatitude()) + "," +
-                        Double.toString(mLatLng.getLongitude()))
-                .appendQueryParameter("radius", mDefaultSearchRadius)
-                .appendQueryParameter("type", "bank")
-                .appendQueryParameter("sensor", "true")
-                .appendQueryParameter("key", getString(R.string.google_maps_api_key));
-        return urlBuilder.build().toString();
+    public static Icon drawableToIcon(@NonNull Context context, @DrawableRes int id) {
+        Drawable vectorDrawable = ResourcesCompat.getDrawable(context.getResources(), id, context.getTheme());
+        Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
+                vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        vectorDrawable.draw(canvas);
+        return IconFactory.getInstance(context).fromBitmap(bitmap);
     }
 
     @Override
@@ -262,12 +340,9 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     @Override
     public void onLocationChanged(Location location) {
         mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-        Log.v("DEBUG", createQueryURL());
-        if(mMarker != null)
-            addUserMarker(true);
-        else
-            addUserMarker(false);
+        addUserMarker();
         updateMapCamera();
+        // getNearbyLocationData();
     }
 
     /* ****************************************************************************************** */
