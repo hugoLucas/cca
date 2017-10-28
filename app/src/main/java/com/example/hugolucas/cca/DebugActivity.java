@@ -11,6 +11,6 @@ public class DebugActivity extends SingleFragmentActivity {
 
     @Override
     protected Fragment createFragment(Bundle savedInstanceState) {
-        return new MapFragment();
+        return new ExchangeFragment();
     }
 }
