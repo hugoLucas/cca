@@ -1,4 +1,4 @@
-package com.example.hugolucas.cca.api;
+package com.example.hugolucas.cca.apis;
 
 import com.example.hugolucas.cca.apiObjects.LocationResponse;
 

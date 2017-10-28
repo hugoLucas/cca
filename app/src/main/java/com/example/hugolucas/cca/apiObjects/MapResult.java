@@ -10,7 +10,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by hugolucas on 10/27/17.
  */
 
-public class Result {
+public class MapResult {
     @SerializedName("geometry") @Expose
     private Geometry geometry;
 

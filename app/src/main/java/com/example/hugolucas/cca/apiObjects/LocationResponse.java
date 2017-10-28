@@ -19,8 +19,8 @@ public class LocationResponse {
     @SerializedName("next_page_token") @Expose
     private String token;
 
-    @SerializedName("results") @Expose
-    private List<Result> results;
+    @SerializedName("mapResults") @Expose
+    private List<MapResult> mapResults;
 
     @SerializedName("status") @Expose
     private String status;
@@ -33,8 +33,8 @@ public class LocationResponse {
         return token;
     }
 
-    public List<Result> getResults() {
-        return results;
+    public List<MapResult> getMapResults() {
+        return mapResults;
     }
 
     public String getStatus() {

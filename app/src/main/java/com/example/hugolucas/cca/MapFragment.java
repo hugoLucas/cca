@@ -23,12 +23,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.hugolucas.cca.api.GoogleMaps;
+import com.example.hugolucas.cca.apis.GoogleMaps;
 import com.example.hugolucas.cca.apiObjects.LocationResponse;
-import com.example.hugolucas.cca.apiObjects.Result;
+import com.example.hugolucas.cca.apiObjects.MapResult;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -45,8 +44,6 @@ import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
-
-import org.w3c.dom.Text;
 
 import java.util.List;
 
@@ -87,7 +84,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     private boolean mFirstCameraUpdate = true;
     private boolean mUpdateNearbyLocations = true;
 
-    private List<Result> mCurrentResults;
+    private List<MapResult> mCurrentMapResults;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -160,7 +157,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 @Override
                 public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
                     if (response.body().getStatus().equals("OK")){
-                        mCurrentResults = response.body().getResults();
+                        mCurrentMapResults = response.body().getMapResults();
                         placeLocationMarkers();
                     }
                 }
@@ -181,7 +178,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     public void placeLocationMarkers(){
         Icon icon = drawableToIcon(getContext(), R.drawable.map_icon_bank);
 
-        for(Result res: mCurrentResults){
+        for(MapResult res: mCurrentMapResults){
             com.example.hugolucas.cca.apiObjects.Location loc = res.getGeometry().getLocation();
 
             MarkerOptions newMarker = new MarkerOptions()
