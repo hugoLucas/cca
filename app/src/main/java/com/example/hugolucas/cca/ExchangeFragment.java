@@ -1,5 +1,6 @@
 package com.example.hugolucas.cca;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -12,10 +13,16 @@ import android.widget.Toast;
 
 import com.example.hugolucas.cca.apiObjects.FixerResult;
 import com.example.hugolucas.cca.apis.FixerApi;
+import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.utils.EntryXComparator;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -48,6 +55,7 @@ public class ExchangeFragment extends Fragment {
 
     @BindView(R.id.toggle_time_interval) FloatingActionButton mTimeToggleButton;
     @BindView(R.id.change_target_currency) FloatingActionButton mCurrencyChangeButton;
+    @BindView(R.id.exchange_line_chart) LineChart mLineChart;
 
     private DataTable mDataTable;
 
@@ -65,23 +73,30 @@ public class ExchangeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_exchange, container, false);
         ButterKnife.bind(this, view);
 
-        queryDatabase("2017-10-27", mDataTable.getCurrencies());
+        mLineChart.setBackgroundColor(getResources().getColor(R.color.graph_background_white));
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        gatherData();
     }
 
     public void gatherData(){
         List<String> dateQueries = generateTimeLine(mCurrentInterval);
-        for (String dateToQuery: dateQueries){
-            final String date = dateToQuery;
-            queryDatabase(date, mDataTable.getCurrencies());
+        int numberOfQueries = dateQueries.size();
+        for (int i = 0; i < numberOfQueries; i ++){
+            final String date = dateQueries.get(i);
+            if (i + 1 == numberOfQueries)
+                queryDatabase(date, mDataTable.getCurrencies(), true);
+            else
+                queryDatabase(date, mDataTable.getCurrencies(), false);
         }
     }
 
-    public void populateGraph(){
-
-    }
-
-    public void queryDatabase(final String date, String currencies){
+    public void queryDatabase(final String date, String currencies, final boolean lastCall){
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://api.fixer.io/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -94,14 +109,17 @@ public class ExchangeFragment extends Fragment {
 
             @Override
             public void onResponse(Call<FixerResult> call, Response<FixerResult> response) {
-                Toast.makeText(getActivity(), "Success :)", Toast.LENGTH_LONG).show();
+                Log.v(TAG, "API call successful for: " + date);
                 Map<String, Float> rates = response.body().getRates();
                 mDataTable.parseMap(date, rates);
+
+                if(lastCall)
+                    new PopulateGraph().execute();
             }
 
             @Override
             public void onFailure(Call<FixerResult> call, Throwable t) {
-                Toast.makeText(getActivity(), "Error :(", Toast.LENGTH_LONG).show();
+                Log.v(TAG, "API call failed for: " + date);
                 Log.v(TAG, t.getLocalizedMessage());
                 Log.v(TAG, t.toString());
             }
@@ -157,15 +175,21 @@ public class ExchangeFragment extends Fragment {
         private Map<String, Float> mSourceMap;
         private Map<String, Float> mTargetMap;
 
+        private Map<String, Integer> mIndexToDateMap;
+        private int mCurrentIndex;
+
         private DataTable(String source, String target){
             mSourceCurrency = source;
             mTargetCurrency = target;
 
             mSourceMap = new HashMap<>();
             mTargetMap = new HashMap<>();
+
+            mIndexToDateMap = new HashMap<>();
+            mCurrentIndex = 0;
         }
 
-        public void parseMap(String date, Map<String, Float> dataMap){
+        public synchronized void parseMap(String date, Map<String, Float> dataMap){
             for (String s: dataMap.keySet()){
                 if (s.equals(mSourceCurrency))
                     mSourceMap.put(date, dataMap.get(s));
@@ -173,11 +197,66 @@ public class ExchangeFragment extends Fragment {
                     mTargetMap.put(date, dataMap.get(s));
                 else
                     throw new IllegalArgumentException("Wrong Response!");
+                assignDateAnIndex(date);
             }
+        }
+
+        public synchronized void assignDateAnIndex(String date){
+            if (mIndexToDateMap.get(date) == null){
+                mIndexToDateMap.put(date, mCurrentIndex);
+                mCurrentIndex += 1;
+            }
+        }
+
+        public synchronized List<Entry> generateSourceEntries(){
+            List<Entry> entries = new ArrayList<>();
+            for (String key: mSourceMap.keySet())
+                entries.add(new Entry(mIndexToDateMap.get(key), mSourceMap.get(key)));
+            Collections.sort(entries, new EntryXComparator());
+            return entries;
+        }
+
+        public synchronized List<Entry> generateTargetEntries(){
+            List<Entry> entries = new ArrayList<>();
+            for (String key: mTargetMap.keySet())
+                entries.add(new Entry(mIndexToDateMap.get(key), mTargetMap.get(key)));
+            Collections.sort(entries, new EntryXComparator());
+            return entries;
         }
 
         public String getCurrencies(){
             return mSourceCurrency + "," + mTargetCurrency;
+        }
+    }
+
+    public class PopulateGraph extends AsyncTask<Void, Void, Void>{
+
+        private LineData data;
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            List<Entry> sourceEntries = mDataTable.generateSourceEntries();
+            List<Entry> targetEntries = mDataTable.generateTargetEntries();
+
+            LineDataSet sourceData = new LineDataSet(sourceEntries, mSourceCurrency);
+            sourceData.setColor(R.color.graph_data_blue);
+
+            LineDataSet targetData = new LineDataSet(targetEntries, mTargetCurrency);
+            targetData.setColor(R.color.graph_data_red);
+
+            data = new LineData();
+            data.addDataSet(sourceData);
+            data.addDataSet(targetData);
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+
+            mLineChart.setData(data);
+            mLineChart.invalidate();
         }
     }
 }
