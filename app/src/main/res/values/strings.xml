@@ -26,5 +26,7 @@
 
     <!-- Google Maps API Strings -->
     <string name="baseUrl">https://maps.googleapis.com/maps/api/place/nearbysearch/json?</string>
+    <string name="dummy_info_window_title">Filler Title</string>
+    <string name="dummy_info_window_address">Dummy Marker Address</string>
 
 </resources>

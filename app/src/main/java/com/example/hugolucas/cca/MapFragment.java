@@ -12,14 +12,18 @@ import android.os.Bundle;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.hugolucas.cca.api.GoogleMaps;
@@ -42,10 +46,13 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 
+import org.w3c.dom.Text;
+
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -65,6 +72,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     private final static int FINE_LOCATION_CODE = 100;
 
     @BindView(R.id.mapView) MapView mMapView;
+    @BindView(R.id.floating_my_location) FloatingActionButton mSearchButton;
 
     private Marker mMarker;
     private LatLng mLatLng;
@@ -73,10 +81,13 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     private GoogleApiClient mGoogleApiClient;
 
     /* Radius is in meters */
-    private String mDefaultSearchRadius = "10000";
+    private String mDefaultSearchRadius = "1000";
+    private int maxSearchRadius = 20000;
 
     private boolean mFirstCameraUpdate = true;
     private boolean mUpdateNearbyLocations = true;
+
+    private List<Result> mCurrentResults;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -84,12 +95,21 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         setHasOptionsMenu(true);
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        menu.clear();
+        inflater.inflate(R.menu.menu_map_fragment, menu);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        super.onCreateView(inflater, container, savedInstanceState);
         View view = inflater.inflate(R.layout.fragment_map, container, false);
         ButterKnife.bind(this, view);
+        setHasOptionsMenu(true);
         return view;
     }
 
@@ -122,8 +142,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
      * institutions. Once a positive result has been received, method updates the MapView with the
      * locations of these new places.
      */
-    private void getNearbyLocationData(){
-        if (mUpdateNearbyLocations) {
+    private void getNearbyLocationData(boolean calledDirectly){
+        if (mUpdateNearbyLocations || calledDirectly) {
             Retrofit retrofit = new Retrofit.Builder()
                     .baseUrl("https://maps.googleapis.com/maps/")
                     .addConverterFactory(GsonConverterFactory.create())
@@ -140,8 +160,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 @Override
                 public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
                     if (response.body().getStatus().equals("OK")){
-                        List<Result> results = response.body().getResults();
-                        placeLocationMarkers(results);
+                        mCurrentResults = response.body().getResults();
+                        placeLocationMarkers();
                     }
                 }
 
@@ -157,13 +177,11 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     /**
      * Using the results from the Google Maps API, this method populates the MapView with the
      * locations of the financial institutions.
-     *
-     * @param results   a list of Result objects from the Google Maps API
      */
-    public void placeLocationMarkers(List<Result> results){
+    public void placeLocationMarkers(){
         Icon icon = drawableToIcon(getContext(), R.drawable.map_icon_bank);
 
-        for(Result res: results){
+        for(Result res: mCurrentResults){
             com.example.hugolucas.cca.apiObjects.Location loc = res.getGeometry().getLocation();
 
             MarkerOptions newMarker = new MarkerOptions()
@@ -241,15 +259,45 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
      */
     private void updateMapCamera(){
         if (mFirstCameraUpdate) {
-            mMapView.setCameraDistance(20);
-            mMapBoxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                    new CameraPosition.Builder()
-                            .target(mLatLng)
-                            .zoom(15)
-                            .bearing(180)
-                            .tilt(30)
-                            .build()), 3000);
+            zoomInOnUser();
             mFirstCameraUpdate = false;
+        }
+    }
+
+    /**
+     * Zooms in on the User when the floating action button is selected.
+     */
+    @OnClick(R.id.floating_my_location)
+    public void zoomInOnUser(){
+        mMapView.setCameraDistance(20);
+        mMapBoxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
+                new CameraPosition.Builder()
+                        .target(mLatLng)
+                        .zoom(15)
+                        .bearing(180)
+                        .tilt(30)
+                        .build()), 3000);
+        mFirstCameraUpdate = false;
+    }
+
+    /**
+     * Increases the search radius for financial institutions up to some limit.
+     */
+    @OnClick(R.id.floating_increase_distance)
+    public void increaseSearchRadius(){
+        int currentRadius = Integer.parseInt(mDefaultSearchRadius);
+
+        if (currentRadius < maxSearchRadius){
+            if (currentRadius == 1000)
+                currentRadius = 5000;
+            else if (currentRadius == 5000)
+                currentRadius = 10000;
+            else if (currentRadius == 10000)
+                currentRadius = 20000;
+
+            mDefaultSearchRadius = String.valueOf(currentRadius);
+
+            getNearbyLocationData(true);
         }
     }
 
@@ -342,7 +390,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         mLatLng = new LatLng(location.getLatitude(), location.getLongitude());
         addUserMarker();
         updateMapCamera();
-        // getNearbyLocationData();
+        getNearbyLocationData(false);
     }
 
     /* ****************************************************************************************** */

@@ -41,4 +41,5 @@ dependencies {
     compile 'com.google.android.gms:play-services-location:11.0.4'
     compile 'com.squareup.retrofit2:retrofit:2.3.0'
     compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile 'com.android.support:design:26.0.0-alpha1'
 }
