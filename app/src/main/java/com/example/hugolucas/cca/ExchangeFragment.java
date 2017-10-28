@@ -30,8 +30,6 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
- * A Java interface for the Fixer.io API using the Retrofit library.
- *
  * Created by hugolucas on 10/27/17.
  */
 
@@ -44,6 +42,10 @@ public class ExchangeFragment extends Fragment {
     private static final String MONTH = "MONTH";
     private static final String WEEK = "WEEK";
 
+    private static String mCurrentInterval = WEEK;
+    private static String mSourceCurrency = "USD";
+    private static String mTargetCurrency = "GBP";
+
     @BindView(R.id.toggle_time_interval) FloatingActionButton mTimeToggleButton;
     @BindView(R.id.change_target_currency) FloatingActionButton mCurrencyChangeButton;
 
@@ -53,8 +55,7 @@ public class ExchangeFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mDataTable = new DataTable("USD", "GBP");
-        generateTimeLine(MONTH);
+        mDataTable = new DataTable(mSourceCurrency, mTargetCurrency);
     }
 
     @Nullable @Override
@@ -69,6 +70,14 @@ public class ExchangeFragment extends Fragment {
     }
 
     public void gatherData(){
+        List<String> dateQueries = generateTimeLine(mCurrentInterval);
+        for (String dateToQuery: dateQueries){
+            final String date = dateToQuery;
+            queryDatabase(date, mDataTable.getCurrencies());
+        }
+    }
+
+    public void populateGraph(){
 
     }
 
