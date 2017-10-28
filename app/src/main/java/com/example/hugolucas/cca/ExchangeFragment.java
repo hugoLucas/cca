@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.example.hugolucas.cca.apiObjects.FixerResult;
@@ -30,6 +31,7 @@ import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -53,8 +55,9 @@ public class ExchangeFragment extends Fragment {
     private static String mSourceCurrency = "USD";
     private static String mTargetCurrency = "GBP";
 
-    @BindView(R.id.toggle_time_interval) FloatingActionButton mTimeToggleButton;
     @BindView(R.id.change_target_currency) FloatingActionButton mCurrencyChangeButton;
+    @BindView(R.id.toggle_time_interval) FloatingActionButton mTimeToggleButton;
+    @BindView(R.id.exchange_fragment_loading_icon) ProgressBar mProgressBar;
     @BindView(R.id.exchange_line_chart) LineChart mLineChart;
 
     private DataTable mDataTable;
@@ -90,6 +93,9 @@ public class ExchangeFragment extends Fragment {
      * the last call in the time interval in order to trigger the update of the graph view.
      */
     public void gatherData(){
+        toggleProgressBarVisibility();
+        toggleGraphComponentVisibility();
+
         List<String> dateQueries = generateTimeLine(mCurrentInterval);
         int numberOfQueries = dateQueries.size();
         for (int i = 0; i < numberOfQueries; i ++){
@@ -189,6 +195,57 @@ public class ExchangeFragment extends Fragment {
     }
 
     /**
+     * When the time interval button is selected, this method will increase the value of the
+     * current time interval to next greatest amount. When at the largest time interval, the
+     * method will reduce it to the smallest time interval.
+     */
+    @OnClick(R.id.toggle_time_interval)
+    public void changeTimeInterval(){
+        switch (mCurrentInterval) {
+            case WEEK:
+                mCurrentInterval = MONTH;
+
+            case MONTH:
+                mCurrentInterval = YEAR;
+
+            case YEAR:
+                mCurrentInterval = DECADE;
+
+            case DECADE:
+                mCurrentInterval = WEEK;
+        }
+        gatherData();
+    }
+
+    /**
+     * Switches the visibility status of all components related to the graph view.
+     */
+    private void toggleGraphComponentVisibility(){
+        toggleVisibility(mCurrencyChangeButton);
+        toggleVisibility(mTimeToggleButton);
+        toggleVisibility(mLineChart);
+    }
+
+    /**
+     * Switches the visibility of the progress bar.
+     */
+    private void toggleProgressBarVisibility(){
+        toggleVisibility(mProgressBar);
+    }
+
+    /**
+     * Switches the visibility of any View object passed as an argument.
+     *
+     * @param object    a View object
+     */
+    private void toggleVisibility(View object){
+        if (object.getVisibility() == View.VISIBLE)
+            object.setVisibility(View.INVISIBLE);
+        else
+            object.setVisibility(View.VISIBLE);
+    }
+
+    /**
      * Class used to orgnize the results of the Fixer API into a format readable by the Graph
      * library used for this fragment.
      */
@@ -285,6 +342,9 @@ public class ExchangeFragment extends Fragment {
 
             mLineChart.setData(data);
             mLineChart.invalidate();
+
+            toggleGraphComponentVisibility();
+            toggleProgressBarVisibility();
         }
     }
 }
