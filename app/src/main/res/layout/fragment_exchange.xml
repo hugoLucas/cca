@@ -45,4 +45,14 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
         android:visibility="invisible"/>
+
+    <TextView
+        android:id="@+id/exchange_fragment_chart_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="5dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:textStyle="bold"
+        android:textSize="15sp" />
 </RelativeLayout>

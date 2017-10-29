@@ -10,20 +10,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import com.example.hugolucas.cca.apiObjects.FixerResult;
 import com.example.hugolucas.cca.apis.FixerApi;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.utils.EntryXComparator;
+import com.github.mikephil.charting.formatter.IAxisValueFormatter;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -51,22 +52,24 @@ public class ExchangeFragment extends Fragment {
     private static final String MONTH = "MONTH";
     private static final String WEEK = "WEEK";
 
-    private static String mCurrentInterval = WEEK;
+    private static int mSourceValue = 10;
+
+    private static String mCurrentInterval = DECADE;
     private static String mSourceCurrency = "USD";
     private static String mTargetCurrency = "GBP";
 
     @BindView(R.id.change_target_currency) FloatingActionButton mCurrencyChangeButton;
     @BindView(R.id.toggle_time_interval) FloatingActionButton mTimeToggleButton;
     @BindView(R.id.exchange_fragment_loading_icon) ProgressBar mProgressBar;
+    @BindView(R.id.exchange_fragment_chart_title) TextView mChartTitle;
     @BindView(R.id.exchange_line_chart) LineChart mLineChart;
 
     private DataTable mDataTable;
+    private XAxisFormatter mXFormatter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        mDataTable = new DataTable(mSourceCurrency, mTargetCurrency);
     }
 
     @Nullable @Override
@@ -77,6 +80,15 @@ public class ExchangeFragment extends Fragment {
         ButterKnife.bind(this, view);
 
         mLineChart.setBackgroundColor(getResources().getColor(R.color.graph_background_white));
+        mLineChart.getAxisLeft().setEnabled(false);
+
+        XAxis xAxis = mLineChart.getXAxis();
+        xAxis.setGranularity(1f);
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+
+        mXFormatter = new XAxisFormatter();
+        xAxis.setValueFormatter(mXFormatter);
+
         return view;
     }
 
@@ -96,8 +108,15 @@ public class ExchangeFragment extends Fragment {
         toggleProgressBarVisibility();
         toggleGraphComponentVisibility();
 
+        mLineChart.setEnabled(false);
+
         List<String> dateQueries = generateTimeLine(mCurrentInterval);
         int numberOfQueries = dateQueries.size();
+
+        mDataTable = new DataTable(mSourceCurrency, mTargetCurrency);
+        mDataTable.setCallNumber(numberOfQueries);
+        mDataTable.setIndicies(dateQueries);
+
         for (int i = 0; i < numberOfQueries; i ++){
             final String date = dateQueries.get(i);
             if (i + 1 == numberOfQueries)
@@ -131,6 +150,7 @@ public class ExchangeFragment extends Fragment {
                 Log.v(TAG, "API call successful for: " + date);
                 Map<String, Float> rates = response.body().getRates();
                 mDataTable.parseMap(date, rates);
+                mDataTable.incrementCalls();
 
                 if(lastCall)
                     new PopulateGraph().execute();
@@ -141,6 +161,8 @@ public class ExchangeFragment extends Fragment {
                 Log.v(TAG, "API call failed for: " + date);
                 Log.v(TAG, t.getLocalizedMessage());
                 Log.v(TAG, t.toString());
+
+                mDataTable.incrementCalls();
             }
         });
     }
@@ -163,31 +185,39 @@ public class ExchangeFragment extends Fragment {
 
         switch (timeInterval) {
             case WEEK: {
+                // Data Points: 7
                 for (int i = 0; i < 7; i ++) {
-                    timeline.add(formatter.format(calendar.getTime()));
+                    timeline.add(0, formatter.format(calendar.getTime()));
                     calendar.add(Calendar.DATE, -1);
                 }
+                break;
             }
 
             case MONTH: {
-                for (int i = 0; i < 15; i += 3){
-                    timeline.add(formatter.format(calendar.getTime()));
-                    calendar.add(Calendar.DATE, -2);
+                // Data Points: 10
+                for (int i = 0; i < 10; i ++){
+                    timeline.add(0, formatter.format(calendar.getTime()));
+                    calendar.add(Calendar.DATE, -3);
                 }
+                break;
             }
 
             case YEAR: {
-                for (int i = 0; i < 26; i += 3){
-                    timeline.add(formatter.format(calendar.getTime()));
-                    calendar.add(Calendar.WEEK_OF_YEAR, -2);
+                // Data Points: 15
+                for (int i = 0; i < 15; i ++){
+                    timeline.add(0, formatter.format(calendar.getTime()));
+                    calendar.add(Calendar.DATE, -14);
                 }
+                break;
             }
 
             case DECADE: {
-                for (int i = 0; i < 20; i += 3){
-                    timeline.add(formatter.format(calendar.getTime()));
+                // Data Points: 20
+                for (int i = 0; i < 20; i ++){
+                    timeline.add(0, formatter.format(calendar.getTime()));
                     calendar.add(Calendar.MONTH, -6);
                 }
+                break;
             }
         }
 
@@ -202,19 +232,32 @@ public class ExchangeFragment extends Fragment {
     @OnClick(R.id.toggle_time_interval)
     public void changeTimeInterval(){
         switch (mCurrentInterval) {
-            case WEEK:
+            case WEEK: {
                 mCurrentInterval = MONTH;
-
-            case MONTH:
+                break;
+            }
+            case MONTH: {
                 mCurrentInterval = YEAR;
-
-            case YEAR:
+                break;
+            }
+            case YEAR: {
                 mCurrentInterval = DECADE;
-
-            case DECADE:
+                break;
+            }
+            case DECADE: {
                 mCurrentInterval = WEEK;
+                break;
+            }
         }
+
+        Log.v(TAG, "Time interval changed to: " + mCurrentInterval);
+        mDataTable = new DataTable(mSourceCurrency, mTargetCurrency);
         gatherData();
+    }
+
+    @OnClick(R.id.change_target_currency)
+    public void changeTargetCurrency(){
+
     }
 
     /**
@@ -223,6 +266,7 @@ public class ExchangeFragment extends Fragment {
     private void toggleGraphComponentVisibility(){
         toggleVisibility(mCurrencyChangeButton);
         toggleVisibility(mTimeToggleButton);
+        toggleVisibility(mChartTitle);
         toggleVisibility(mLineChart);
     }
 
@@ -246,10 +290,13 @@ public class ExchangeFragment extends Fragment {
     }
 
     /**
-     * Class used to orgnize the results of the Fixer API into a format readable by the Graph
+     * Class used to organize the results of the Fixer API into a format readable by the Graph
      * library used for this fragment.
      */
     private class DataTable{
+
+        private int mNumberOfCalls;
+        private int mCurrentCalls = 0;
 
         private String mSourceCurrency;
         private String mTargetCurrency;
@@ -257,8 +304,9 @@ public class ExchangeFragment extends Fragment {
         private Map<String, Float> mSourceMap;
         private Map<String, Float> mTargetMap;
 
-        private Map<String, Integer> mIndexToDateMap;
-        private int mCurrentIndex;
+        private List<String> mIndiciesGenerator;
+
+        private Map<Integer, String> mLabelMap;
 
         private DataTable(String source, String target){
             mSourceCurrency = source;
@@ -267,8 +315,7 @@ public class ExchangeFragment extends Fragment {
             mSourceMap = new HashMap<>();
             mTargetMap = new HashMap<>();
 
-            mIndexToDateMap = new HashMap<>();
-            mCurrentIndex = 0;
+            mLabelMap = new HashMap<>();
         }
 
         public synchronized void parseMap(String date, Map<String, Float> dataMap){
@@ -279,31 +326,56 @@ public class ExchangeFragment extends Fragment {
                     mTargetMap.put(date, dataMap.get(s));
                 else
                     throw new IllegalArgumentException("Wrong Response!");
-                assignDateAnIndex(date);
-            }
-        }
-
-        public synchronized void assignDateAnIndex(String date){
-            if (mIndexToDateMap.get(date) == null){
-                mIndexToDateMap.put(date, mCurrentIndex);
-                mCurrentIndex += 1;
+                // assignDateAnIndex(date);
             }
         }
 
         public synchronized List<Entry> generateSourceEntries(){
             List<Entry> entries = new ArrayList<>();
-            for (String key: mSourceMap.keySet())
-                entries.add(new Entry(mIndexToDateMap.get(key), mSourceMap.get(key)));
-            Collections.sort(entries, new EntryXComparator());
+            int index = 0;
+            for (String key: mIndiciesGenerator)
+                entries.add(new Entry(index++, mSourceMap.get(key)));
             return entries;
         }
 
         public synchronized List<Entry> generateTargetEntries(){
             List<Entry> entries = new ArrayList<>();
-            for (String key: mTargetMap.keySet())
-                entries.add(new Entry(mIndexToDateMap.get(key), mTargetMap.get(key)));
-            Collections.sort(entries, new EntryXComparator());
+            int index = 0;
+            for (String key: mIndiciesGenerator)
+                entries.add(new Entry(index++, mTargetMap.get(key)));
             return entries;
+        }
+
+        public synchronized List<Entry> generateValueEntries(){
+            List<Entry> entries = new ArrayList<>();
+            int index = 0;
+            for (String key: mIndiciesGenerator)
+                entries.add(new Entry(index++, (float) mSourceValue * mTargetMap.get(key)));
+            return entries;
+        }
+
+        public synchronized String getXAxisLabel(int index){
+            try {
+                return mIndiciesGenerator.get(index);
+            }catch (IndexOutOfBoundsException e){
+                return null;
+            }
+        }
+
+        public synchronized void setCallNumber(int calls){
+            mNumberOfCalls = calls;
+        }
+
+        public synchronized void setIndicies(List<String> indicies){
+            mIndiciesGenerator = indicies;
+        }
+
+        public synchronized boolean allCallsComplete(){
+            return mNumberOfCalls == mCurrentCalls;
+        }
+
+        public synchronized void incrementCalls() {
+            mCurrentCalls += 1;
         }
 
         public String getCurrencies(){
@@ -314,24 +386,33 @@ public class ExchangeFragment extends Fragment {
     /**
      * AsyncTask used to populate the Graph View with the data generated by the Fixer API.
      */
-    public class PopulateGraph extends AsyncTask<Void, Void, Void>{
+    private class PopulateGraph extends AsyncTask<Void, Void, Void>{
 
         private LineData data;
 
         @Override
         protected Void doInBackground(Void... voids) {
+
+            while(! mDataTable.allCallsComplete()) {}
+
             List<Entry> sourceEntries = mDataTable.generateSourceEntries();
             List<Entry> targetEntries = mDataTable.generateTargetEntries();
+            List<Entry> valueEntries = mDataTable.generateValueEntries();
 
             LineDataSet sourceData = new LineDataSet(sourceEntries, mSourceCurrency);
-            sourceData.setColor(R.color.graph_data_blue);
+            sourceData.setColor(getResources().getColor(R.color.graph_data_blue));
 
             LineDataSet targetData = new LineDataSet(targetEntries, mTargetCurrency);
-            targetData.setColor(R.color.graph_data_red);
+            targetData.setColor(getResources().getColor(R.color.graph_data_red));
+
+            LineDataSet valueData = new LineDataSet(valueEntries,
+                    getString(R.string.graph_converted_value_data_label));
+            valueData.setColor(getResources().getColor(R.color.graph_data_green));
 
             data = new LineData();
             data.addDataSet(sourceData);
             data.addDataSet(targetData);
+            data.addDataSet(valueData);
 
             return null;
         }
@@ -340,11 +421,35 @@ public class ExchangeFragment extends Fragment {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
 
-            mLineChart.setData(data);
-            mLineChart.invalidate();
+            mLineChart.setEnabled(true);
 
+            if (mLineChart.getLineData() != null)
+                mLineChart.clearValues();
+
+            mLineChart.setData(data);
+            mChartTitle.setText(mCurrentInterval);
+
+            mLineChart.invalidate();
             toggleGraphComponentVisibility();
             toggleProgressBarVisibility();
+        }
+    }
+
+
+    private class XAxisFormatter implements IAxisValueFormatter{
+
+        /**
+         * Called when a value from an axis is to be formatted
+         * before being drawn. For performance reasons, avoid excessive calculations
+         * and memory allocations inside this method.
+         *
+         * @param value the value to be formatted
+         * @param axis  the axis the value belongs to
+         * @return      string label for float
+         */
+        @Override
+        public String getFormattedValue(float value, AxisBase axis) {
+            return mDataTable.getXAxisLabel((int) value);
         }
     }
 }

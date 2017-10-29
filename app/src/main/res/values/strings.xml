@@ -9,6 +9,7 @@
     <string name="options_menu_title">Options Menu</string>
     <string name="search_radius_title">Search Radius</string>
     <string name="affirmative_selection">OK</string>
+    <string name="graph_converted_value_data_label">Adjusted Value</string>
 
     <!-- API Keys -->
     <string name="mapbox_api_key">pk.eyJ1IjoiaHVnb2Y3NTYiLCJhIjoiY2o5OTc4N3I0MHBjZTJ3cW1tYXBsOTUzZyJ9.h2WlhaCYJMlkF_Nq88NDVg</string>

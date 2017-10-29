@@ -11,5 +11,6 @@
     <!-- Graph Colors in ExchangeFragment -->
     <color name="graph_data_red">#e53935</color>
     <color name="graph_data_blue">#304ffe</color>
+    <color name="graph_data_green">#64dd17</color>
     <color name="graph_background_white">#ffffff</color>
 </resources>
