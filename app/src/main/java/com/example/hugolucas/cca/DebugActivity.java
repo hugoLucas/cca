@@ -7,7 +7,7 @@ import android.support.v4.app.Fragment;
  * Created by hugolucas on 10/27/17.
  */
 
-public class DebugActivity extends SingleFragmentActivity {
+public class DebugActivity extends SingleFragmentActivity{
 
     @Override
     protected Fragment createFragment(Bundle savedInstanceState) {

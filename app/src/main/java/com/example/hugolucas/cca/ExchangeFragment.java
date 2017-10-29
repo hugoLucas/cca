@@ -1,14 +1,19 @@
 package com.example.hugolucas.cca;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -258,6 +263,28 @@ public class ExchangeFragment extends Fragment {
     @OnClick(R.id.change_target_currency)
     public void changeTargetCurrency(){
 
+        final String [] currencyOptions = getResources().getStringArray(R.array.dialog_currencies);
+        final NumberPicker mCurrencyPicker = new NumberPicker(getContext());
+        mCurrencyPicker.setMinValue(0);
+        mCurrencyPicker.setValue(0);
+        mCurrencyPicker.setMaxValue(currencyOptions.length - 1);
+        mCurrencyPicker.setDisplayedValues(currencyOptions);
+        mCurrencyPicker.setEnabled(true);
+        mCurrencyPicker.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setView(mCurrencyPicker);
+        builder.setTitle("Select a New Target Currency");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                mTargetCurrency = currencyOptions[mCurrencyPicker.getValue()];
+                gatherData();
+            }
+        });
+
+        Dialog d = builder.create();
+        builder.create().show();
     }
 
     /**

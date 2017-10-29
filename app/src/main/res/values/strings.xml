@@ -30,4 +30,39 @@
     <string name="dummy_info_window_title">Filler Title</string>
     <string name="dummy_info_window_address">Dummy Marker Address</string>
 
+    <!-- Dialog Picker Labels -->
+    <string-array name="dialog_currencies">
+        <item>AUD</item>
+        <item>BGN</item>
+        <item>BRL</item>
+        <item>CAD</item>
+        <item>CHF</item>
+        <item>CNY</item>
+        <item>CZK</item>
+        <item>DKK</item>
+        <item>GBP</item>
+        <item>HKD</item>
+        <item>HRK</item>
+        <item>HUF</item>
+        <item>IDR</item>
+        <item>ILS</item>
+        <item>INR</item>
+        <item>JPY</item>
+        <item>KRW</item>
+        <item>MXN</item>
+        <item>MYR</item>
+        <item>NOK</item>
+        <item>PHP</item>
+        <item>PLN</item>
+        <item>RON</item>
+        <item>RUB</item>
+        <item>SEK</item>
+        <item>SGD</item>
+        <item>THB</item>
+        <item>TRY</item>
+        <item>ZAR</item>
+        <item>EUR</item>
+        <item>NZD</item>
+    </string-array>
+
 </resources>
