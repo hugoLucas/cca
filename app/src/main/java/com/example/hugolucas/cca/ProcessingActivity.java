@@ -28,11 +28,18 @@ public class ProcessingActivity extends AppCompatActivity {
     private String mPhotoPath;
     private Mat mBanknote;
 
+    private String [] mBanknoteClassification;
     private ImagePreprocessor mProcessor;
     private Classifier mClassifier;
 
     private WaveLoadingView mWaveLoadingView;
 
+    /**
+     * Ensures that the OpenCV library is loaded before any code using any OpenCV methods is
+     * called. Once the OpenCV library has been loaded successfully, an AsyncTask starting the
+     * image pre-processing is started. This ensures the loading icon can be updated while the
+     * ImagePreprocessor is running.
+     */
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -41,7 +48,6 @@ public class ProcessingActivity extends AppCompatActivity {
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
                     System.loadLibrary("nonfree");
-
                     new PreProcessorAsyncTask().execute(mPhotoPath);
                 } break;
                 default:
@@ -94,6 +100,12 @@ public class ProcessingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Updates the loading icon to a specific progress value and with a specific message.
+     *
+     * @param message       the String message to display to the User indicating progress
+     * @param progress      a value out of 100 indicating progress
+     */
     public void updateLoadingIcon(String message, int progress){
         mWaveLoadingView.setCenterTitle(message);
         mWaveLoadingView.setProgressValue(progress);
@@ -101,7 +113,7 @@ public class ProcessingActivity extends AppCompatActivity {
 
     /**
      * Displays the Mat image loaded by the application and pre-processed by the ImagePreprocessor.
-     * Used for debugging, do not processed display image directly to User.
+     * Used for debugging, do not display image directly to User.
      *
      * @param image     a Mat of the image taken by the User for classification
      */
@@ -115,6 +127,9 @@ public class ProcessingActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * AsyncTask used to run the ImagePreprocessor. When complete calls the Classifier.
+     */
     private class PreProcessorAsyncTask extends AsyncTask<String, Integer, Void>{
 
         @Override
@@ -142,9 +157,11 @@ public class ProcessingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * AsyncTask used to run the Classifier. When complete calls method that starts the
+     * ResultsActivity.
+     */
     private class ClassifierAsyncTask extends AsyncTask<Void, Void, Void>{
-
-        private String mClassification;
 
         @Override
         protected void onPreExecute() {
@@ -156,7 +173,7 @@ public class ProcessingActivity extends AppCompatActivity {
         @Override
         protected Void doInBackground(Void... voids) {
             Log.v(TAG, "C running");
-            mClassification = mClassifier.classify(mBanknote);
+            mBanknoteClassification = mClassifier.classify(mBanknote);
             return null;
         }
 
@@ -165,7 +182,6 @@ public class ProcessingActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             Log.v(TAG, "C complete");
             updateLoadingIcon("Classification Complete..", 80);
-            Toast.makeText(getApplicationContext(), mClassification, Toast.LENGTH_LONG).show();
         }
     }
 }

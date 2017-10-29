@@ -36,6 +36,9 @@ public class Classifier {
 
     private static String TAG = "hugo.Classifier";
 
+    private static final int mCurrencyCodeIndex = 0;
+    private static final int mCurrencyValueIndex = 1;
+
     private Context mContext;
 
     public Classifier(Context c){
@@ -49,12 +52,12 @@ public class Classifier {
      * @param image     the image of the unknown banknote
      * @return          a String representation of the classification results
      */
-    public String classify(Mat image){
+    public String[] classify(Mat image){
         MatOfKeyPoint keyPoints = detectFeatures(image, null);
         MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);
         String dbFileName = featureMatching(descriptors);
 
-        return "";
+        return generateResultsString(dbFileName);
     }
 
     /**
@@ -139,6 +142,18 @@ public class Classifier {
 
             return bestFitFilename;
         }
+    }
+
+    /**
+     * Extracts the 3-letter currency code and n-digit value of the matched banknote from its
+     * filename.
+     *
+     * @param fileName      the file name the unknown banknote most closely matches from DB
+     * @return              a string array containing the matched currency code and value
+     */
+    private String[] generateResultsString(String fileName){
+        String [] components = fileName.split("_");
+        return new String[] {components[mCurrencyCodeIndex], components[mCurrencyValueIndex]};
     }
 
     /**

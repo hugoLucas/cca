@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -46,7 +47,7 @@ public class CameraActivity extends AppCompatActivity {
     private static final int WRITE_PERMISSION = 1;
     private static final int READ_PERMISSION = 2;
 
-    private static final int CLASS_REQ_CODE = 1;
+    private static final int PROC_REQ_CODE = 1;
 
     private static boolean displayArray [] = new boolean[3];
 
@@ -171,7 +172,18 @@ public class CameraActivity extends AppCompatActivity {
      */
     public void startImageProcessing(String photoPath){
         startActivityForResult(ProcessingActivity.genIntent(getApplicationContext(),
-                photoPath), CLASS_REQ_CODE);
+                photoPath), PROC_REQ_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode){
+            case PROC_REQ_CODE: {
+
+                break;
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
