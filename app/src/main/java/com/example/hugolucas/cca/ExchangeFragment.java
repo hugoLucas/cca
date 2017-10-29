@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.NumberPicker;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -45,6 +44,10 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
+ * Queries the Fixer.io API for exchange rate information on the currency of the unknown banknote
+ * and the User selected target currency. Displays this information on a line graph with
+ * customizable time intervals.
+ *
  * Created by hugolucas on 10/27/17.
  */
 
@@ -260,6 +263,11 @@ public class ExchangeFragment extends Fragment {
         gatherData();
     }
 
+    /**
+     * Displays a NumberPicker with the labels change to that of the available target currencies.
+     * Allows the User to choose a new conversion currency and updates the graph view once a new
+     * target currency is selected.
+     */
     @OnClick(R.id.change_target_currency)
     public void changeTargetCurrency(){
 
@@ -462,7 +470,10 @@ public class ExchangeFragment extends Fragment {
         }
     }
 
-
+    /**
+     * Formatter for the X-Axis labels in the graph view. Converts each data points numerical
+     * index value into a String of the date that data point is derived from.
+     */
     private class XAxisFormatter implements IAxisValueFormatter{
 
         /**
