@@ -11,6 +11,7 @@ import android.graphics.drawable.Icon;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.DrawableRes;
+import android.support.annotation.IntegerRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -42,6 +43,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -79,6 +82,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     private GoogleApiClient mGoogleApiClient;
 
     /* Radius is in meters */
+    private Circle mCurrentCircle;
     private String mDefaultSearchRadius = "1000";
     private int maxSearchRadius = 20000;
 
@@ -162,6 +166,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                     Log.v(TAG, response.message());
                     mCurrentMapResults = response.body().getMapResults();
                     placeLocationMarkers();
+                    drawRadius();
                 }
 
                 @Override
@@ -195,6 +200,19 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         }else{
             Log.v(TAG, "No results found...");
         }
+    }
+
+    /**
+     * Draws a circle around the current location of the User in order to indicated the size
+     * of the search radius.
+     */
+    public void drawRadius(){
+        if (mCurrentCircle != null)
+            mCurrentCircle.remove();
+        mCurrentCircle = mGoogleMap.addCircle(new CircleOptions()
+                .center(mLatLng)
+                .radius((double) Integer.parseInt(mDefaultSearchRadius))
+                .strokeColor(getResources().getColor(R.color.blue_text)));
     }
 
     /**
