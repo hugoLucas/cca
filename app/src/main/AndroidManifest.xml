@@ -32,7 +32,7 @@
         </activity>
 
         <activity android:name=".ProcessingActivity"/>
-        <activity android:name=".DebugActivity"/>
+        <activity android:name=".HostActivity"/>
         <activity android:name=".ResultsActivity"/>
     </application>
 

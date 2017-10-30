@@ -19,6 +19,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -153,13 +154,14 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                     "bank",
                     Double.toString(mLatLng.latitude) + "," + Double.toString(mLatLng.longitude),
                     mDefaultSearchRadius);
+            Log.v(TAG, call.request().toString());
             call.enqueue(new Callback<LocationResponse>() {
                 @Override
                 public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
-                    if (response.body().getStatus().equals("OK")){
-                        mCurrentMapResults = response.body().getMapResults();
-                        placeLocationMarkers();
-                    }
+                    Log.v(TAG, "API call successful...");
+                    Log.v(TAG, response.message());
+                    mCurrentMapResults = response.body().getMapResults();
+                    placeLocationMarkers();
                 }
 
                 @Override
@@ -177,17 +179,21 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
      */
     public void placeLocationMarkers(){
         // Icon icon = drawableToIcon(getContext(), R.drawable.map_icon_bank);
-        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.map_icon_bank);
+        BitmapDescriptor icon = drawableToIcon(getContext(), R.drawable.map_icon_bank);
+        if (mCurrentMapResults != null) {
+            Log.v(TAG, "Results found: " + mCurrentMapResults.size());
+            for (MapResult res : mCurrentMapResults) {
+                com.example.hugolucas.cca.apiObjects.Location loc = res.getGeometry().getLocation();
 
-        for(MapResult res: mCurrentMapResults){
-            com.example.hugolucas.cca.apiObjects.Location loc = res.getGeometry().getLocation();
-
-            MarkerOptions newMarker = new MarkerOptions()
-                    .position(new LatLng(loc.getLat(), loc.getLng()))
-                    .title(res.getName())
-                    .snippet(res.getVicinity())
-                    .icon(icon);
-            mGoogleMap.addMarker(newMarker);
+                MarkerOptions newMarker = new MarkerOptions()
+                        .position(new LatLng(loc.getLat(), loc.getLng()))
+                        .title(res.getName())
+                        .snippet(res.getVicinity())
+                        .icon(icon);
+                mGoogleMap.addMarker(newMarker);
+            }
+        }else{
+            Log.v(TAG, "No results found...");
         }
     }
 
@@ -296,6 +302,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     public void increaseSearchRadius(){
         int currentRadius = Integer.parseInt(mDefaultSearchRadius);
 
+        Log.v(TAG, "Search radius currently: " + currentRadius);
         if (currentRadius < maxSearchRadius){
             if (currentRadius == 1000)
                 currentRadius = 5000;
@@ -305,7 +312,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                 currentRadius = 20000;
 
             mDefaultSearchRadius = String.valueOf(currentRadius);
-
+            Log.v(TAG, "Search radius now: " + mDefaultSearchRadius);
             getNearbyLocationData(true);
         }
     }
@@ -331,15 +338,15 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
      * @param id            resource id of vector asset
      * @return              icon made from the drawable
      */
-    public static Icon drawableToIcon(@NonNull Context context, @DrawableRes int id) {
+    public static BitmapDescriptor drawableToIcon(@NonNull Context context, @DrawableRes int id) {
         Drawable vectorDrawable = ResourcesCompat.getDrawable(context.getResources(), id, context.getTheme());
         Bitmap bitmap = Bitmap.createBitmap(vectorDrawable.getIntrinsicWidth(),
                 vectorDrawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         vectorDrawable.draw(canvas);
-        // return IconFactory.getInstance(context).fromBitmap(bitmap);
-        return null;
+
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     @Override

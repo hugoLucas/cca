@@ -82,11 +82,17 @@ public class ResultsActivity extends AppCompatActivity{
 
     @OnClick(R.id.map_button)
     public void startMapFragment(){
-
+        HostActivity.setFragment(new MapFragment());
+        startHostActivity();
     }
 
     @OnClick(R.id.exchange_button)
     public void startExchangeButton(){
+        HostActivity.setFragment(new ExchangeFragment());
+        startHostActivity();
+    }
 
+    public void startHostActivity(){
+        startActivity(new Intent(this, HostActivity.class));
     }
 }

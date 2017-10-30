@@ -19,7 +19,7 @@ public class LocationResponse {
     @SerializedName("next_page_token") @Expose
     private String token;
 
-    @SerializedName("mapResults") @Expose
+    @SerializedName("results") @Expose
     private List<MapResult> mapResults;
 
     @SerializedName("status") @Expose
