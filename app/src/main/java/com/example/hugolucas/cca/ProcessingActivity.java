@@ -48,6 +48,7 @@ public class ProcessingActivity extends AppCompatActivity {
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
+                    System.loadLibrary("opencv_java");
                     System.loadLibrary("nonfree");
                     new PreProcessorAsyncTask().execute(mPhotoPath);
                 } break;
@@ -83,9 +84,6 @@ public class ProcessingActivity extends AppCompatActivity {
         mWaveLoadingView = (WaveLoadingView) findViewById(R.id.waveLoadingView);
         updateLoadingIcon("Loading Image Libraries...", 0);
         mWaveLoadingView.startAnimation();
-
-        mProcessor = new ImagePreprocessor();
-        mClassifier = new Classifier(this.getApplicationContext());
     }
 
     @Override
@@ -160,6 +158,8 @@ public class ProcessingActivity extends AppCompatActivity {
         protected Void doInBackground(String... strings) {
             Log.v(TAG, "PP running");
             String path = strings[0];
+            mProcessor = new ImagePreprocessor();
+            mClassifier = new Classifier(getApplicationContext());
             mBanknote = mProcessor.preprocessImage(path);
 
             return null;

@@ -196,6 +196,7 @@ public class CameraActivity extends AppCompatActivity {
             case PROC_REQ_CODE: {
                 if(resultCode == RESULT_OK) {
                     /* Classifier succeeded, start ResultsActivity */
+                    Log.v(TAG, "Reported back successfully!");
                     String currencyCode = data.getStringExtra(RESULT_CURRENCY_CODE);
                     String currencyValue = data.getStringExtra(RESULT_CURRENCY_VALUE);
 

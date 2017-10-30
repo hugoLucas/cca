@@ -113,8 +113,8 @@ public class Classifier {
             for (String fileName : fileNames) {
                 List<MatOfDMatch> matches = new LinkedList<>();
 
-                Mat image = loadAsset(fileName, "images/");
-                Mat mask = loadAsset(fileName, "masks/");
+                Mat image = loadAsset(fileName, "images");
+                Mat mask = loadAsset(fileName, "masks");
 
                 Log.v(TAG, "Matching" + fileName + "features...");
                 MatOfKeyPoint keyPoints = detectFeatures(image, mask);
@@ -199,7 +199,7 @@ public class Classifier {
     private String [] loadImageDatabase(){
         AssetManager manager = mContext.getAssets();
         try{
-            return manager.list("currency_images");
+            return manager.list("currency_images/images");
         }catch (IOException e){
             return null;
         }

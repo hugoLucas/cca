@@ -7,6 +7,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.Icon;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.DrawableRes;
@@ -33,17 +34,16 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.mapbox.mapboxsdk.Mapbox;
-import com.mapbox.mapboxsdk.annotations.Icon;
-import com.mapbox.mapboxsdk.annotations.IconFactory;
-import com.mapbox.mapboxsdk.annotations.Marker;
-import com.mapbox.mapboxsdk.annotations.MarkerOptions;
-import com.mapbox.mapboxsdk.camera.CameraPosition;
-import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
-import com.mapbox.mapboxsdk.geometry.LatLng;
-import com.mapbox.mapboxsdk.maps.MapView;
-import com.mapbox.mapboxsdk.maps.MapboxMap;
-import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.List;
 
@@ -73,7 +73,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
 
     private Marker mMarker;
     private LatLng mLatLng;
-    private MapboxMap mMapBoxMap;
+    private GoogleMap mGoogleMap;
     private MarkerOptions mMarkerOptions;
     private GoogleApiClient mGoogleApiClient;
 
@@ -114,12 +114,12 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Mapbox.getInstance(getActivity(), getString(R.string.mapbox_api_key));
+        // Mapbox.getInstance(getActivity(), getString(R.string.mapbox_api_key));
         mMapView.onCreate(savedInstanceState);
         mMapView.getMapAsync(new OnMapReadyCallback() {
             @Override
-            public void onMapReady(MapboxMap mapboxMap) {
-                mMapBoxMap = mapboxMap;
+            public void onMapReady(GoogleMap googleMap) {
+                mGoogleMap = googleMap;
                 int fineLocationPermission = ContextCompat.checkSelfPermission(getActivity(),
                         Manifest.permission.ACCESS_FINE_LOCATION);
 
@@ -151,7 +151,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
                     "true",
                     getString(R.string.google_maps_api_key),
                     "bank",
-                    Double.toString(mLatLng.getLatitude()) + "," + Double.toString(mLatLng.getLongitude()),
+                    Double.toString(mLatLng.latitude) + "," + Double.toString(mLatLng.longitude),
                     mDefaultSearchRadius);
             call.enqueue(new Callback<LocationResponse>() {
                 @Override
@@ -176,7 +176,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
      * locations of the financial institutions.
      */
     public void placeLocationMarkers(){
-        Icon icon = drawableToIcon(getContext(), R.drawable.map_icon_bank);
+        // Icon icon = drawableToIcon(getContext(), R.drawable.map_icon_bank);
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.drawable.map_icon_bank);
 
         for(MapResult res: mCurrentMapResults){
             com.example.hugolucas.cca.apiObjects.Location loc = res.getGeometry().getLocation();
@@ -184,9 +185,9 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
             MarkerOptions newMarker = new MarkerOptions()
                     .position(new LatLng(loc.getLat(), loc.getLng()))
                     .title(res.getName())
-                    .setSnippet(res.getVicinity())
-                    .setIcon(icon);
-            mMapBoxMap.addMarker(newMarker);
+                    .snippet(res.getVicinity())
+                    .icon(icon);
+            mGoogleMap.addMarker(newMarker);
         }
     }
 
@@ -267,13 +268,24 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     @OnClick(R.id.floating_my_location)
     public void zoomInOnUser(){
         mMapView.setCameraDistance(20);
-        mMapBoxMap.animateCamera(CameraUpdateFactory.newCameraPosition(
-                new CameraPosition.Builder()
+        mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(new CameraPosition.Builder()
                         .target(mLatLng)
                         .zoom(15)
                         .bearing(180)
                         .tilt(30)
-                        .build()), 3000);
+                        .build()), 3000,
+                new GoogleMap.CancelableCallback(){
+                    @Override
+                    public void onFinish() {
+                        /* Don't Care */
+                    }
+
+                    @Override
+                    public void onCancel() {
+                        /* Don't Care */
+                    }
+                }
+        );
         mFirstCameraUpdate = false;
     }
 
@@ -306,8 +318,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
             mMarkerOptions = new MarkerOptions()
                     .position(mLatLng)
                     .title(getString(R.string.map_user_title));
-            mMapBoxMap.addMarker(mMarkerOptions);
-            mMarker = mMapBoxMap.getMarkers().get(0);
+            mMarker = mGoogleMap.addMarker(mMarkerOptions);
         }else{
             mMarker.setPosition(mLatLng);
         }
@@ -327,7 +338,8 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         Canvas canvas = new Canvas(bitmap);
         vectorDrawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
         vectorDrawable.draw(canvas);
-        return IconFactory.getInstance(context).fromBitmap(bitmap);
+        // return IconFactory.getInstance(context).fromBitmap(bitmap);
+        return null;
     }
 
     @Override
@@ -366,7 +378,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
 
     @Override
     public void onConnectionSuspended(int i) {
-
+        /* Don't Care */
     }
 
     /* ****************************************************************************************** */

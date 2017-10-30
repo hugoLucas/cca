@@ -23,7 +23,7 @@
             android:value="@string/google_maps_api_key"/>
 
         <activity
-            android:name="com.example.hugolucas.cca.DebugActivity"
+            android:name="com.example.hugolucas.cca.CameraActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -32,7 +32,8 @@
         </activity>
 
         <activity android:name=".ProcessingActivity"/>
-        <activity android:name=".CameraActivity"/>
+        <activity android:name=".DebugActivity"/>
+        <activity android:name=".ResultsActivity"/>
     </application>
 
 </manifest>
