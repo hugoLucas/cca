@@ -10,77 +10,99 @@
         android:layout_width="340dp"
         android:layout_height="200dp"
         android:layout_marginTop="40dp"
-        android:layout_marginBottom="40dp"
+        android:layout_marginBottom="20dp"
         android:layout_gravity="center"
         android:background="@color/red_black"/>
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="300dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="20dp"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        android:background="@drawable/shapes"
+        android:padding="10dp"
+        android:elevation="5dp">
 
-        <ImageView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/globe_icon"
-            android:layout_gravity="center_horizontal|center_vertical" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="3dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="10dp"
+            android:layout_gravity="center"
+            android:layout_weight="50">
 
-        <TextView
-            android:id="@+id/country_result_text_view"
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_country_figure"
+                android:layout_gravity="center_horizontal|center_vertical" />
+
+            <TextView
+                android:id="@+id/country_result_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:text="ABC"
+                android:textColor="@color/graph_background_white"
+                android:layout_gravity="center_horizontal|center_vertical"
+                android:textSize="30sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="@string/country_result_placeholder"
-            android:textAlignment="viewEnd"
-            android:textSize="24sp" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="3dp"
+            android:layout_gravity="center"
+            android:layout_weight="50">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_value_figure"
+                android:layout_gravity="center_horizontal|center_vertical" />
+
+            <TextView
+                android:id="@+id/value_result_text_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/value_result_placeholder"
+                android:textColor="@color/graph_background_white"
+                android:layout_gravity="center_horizontal|center_vertical"
+                android:textStyle="bold"
+                android:textSize="30sp" />
+        </LinearLayout>
+
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="20dp"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        android:layout_marginTop="50dp">
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/denomination_icon"
-            android:layout_gravity="center_horizontal|center_vertical" />
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/map_button"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginEnd="30dp"
+            android:layout_gravity="center"
+            android:src="@mipmap/ic_map_icon"
+            />
 
-        <TextView
-            android:id="@+id/value_result_text_view"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:text="@string/value_result_placeholder"
-            android:textAlignment="viewEnd"
-            android:textSize="24sp" />
-    </LinearLayout>
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/exchange_button"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginStart="30dp"
+            android:layout_gravity="center"
+            android:src="@mipmap/ic_exchange_icon"
+            />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
-
-        <Button
-            android:id="@+id/map_fragment_button"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_margin="5dp"
-            android:text="@string/map_fragment_button_label"
-            android:textColor="@color/colorAccent"
-            android:layout_weight="50"/>
-
-        <Button
-            android:id="@+id/exchange_fragment_button"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_margin="5dp"
-            android:text="@string/exchange_fragment_button_label"
-            android:textColor="@color/colorAccent"
-            android:layout_weight="50"/>
     </LinearLayout>
 </LinearLayout>

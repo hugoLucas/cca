@@ -19,6 +19,7 @@ import org.opencv.imgproc.Imgproc;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * Presents the results of the classification to the User. Allows the user to access MapFragment
@@ -77,5 +78,15 @@ public class ResultsActivity extends AppCompatActivity{
         Utils.matToBitmap(image, bitmap);
 
         return bitmap;
+    }
+
+    @OnClick(R.id.map_button)
+    public void startMapFragment(){
+
+    }
+
+    @OnClick(R.id.exchange_button)
+    public void startExchangeButton(){
+
     }
 }
