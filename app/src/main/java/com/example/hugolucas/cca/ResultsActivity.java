@@ -88,7 +88,13 @@ public class ResultsActivity extends AppCompatActivity{
 
     @OnClick(R.id.exchange_button)
     public void startExchangeButton(){
-        HostActivity.setFragment(new ExchangeFragment());
+        Bundle bundle = ExchangeFragment.buildArgumentsBundle(mSourceCurrencyCode,
+                mSourceCurrencyValue);
+
+        ExchangeFragment fragment = new ExchangeFragment();
+        fragment.setArguments(bundle);
+
+        HostActivity.setFragment(fragment);
         startHostActivity();
     }
 

@@ -55,6 +55,9 @@ public class ExchangeFragment extends Fragment {
 
     private static String TAG = "exchange_fragment";
 
+    private static final String CODE = "exchange_fragment_code";
+    private static final String VAL = "exchange_fragment_value";
+
     private static final String DECADE = "DECADE";
     private static final String YEAR = "YEAR";
     private static final String MONTH = "MONTH";
@@ -78,6 +81,9 @@ public class ExchangeFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mSourceCurrency = getArguments().getString(CODE, "USD");
+        mSourceValue = Integer.parseInt(getArguments().getString(VAL, "10"));
     }
 
     @Nullable @Override
@@ -489,5 +495,21 @@ public class ExchangeFragment extends Fragment {
         public String getFormattedValue(float value, AxisBase axis) {
             return mDataTable.getXAxisLabel((int) value);
         }
+    }
+
+    /**
+     * Creates a Bundle object in order to allow other Activity/Fragments from this application
+     * to send data to the ExchangeFragment.
+     *
+     * @param code      the 3-letter currency code specified in the Fixer.io API
+     * @param value     the string value of the identified banknote
+     * @return          a Bundle containing the information above
+     */
+    public static Bundle buildArgumentsBundle(String code, String value){
+        Bundle bundle = new Bundle();
+        bundle.putString(CODE, code);
+        bundle.putString(VAL, value);
+
+        return bundle;
     }
 }
