@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -128,6 +129,22 @@ public class ProcessingActivity extends AppCompatActivity {
     }
 
     /**
+     * Returns classification result to calling activity if no errors were detected.
+     *
+     * @param error     true if error, false otherwise
+     */
+    public void returnResult(boolean error){
+        if (!error) {
+            Intent resultIntent = CameraActivity.buildProcessingResultIntent(
+                    mBanknoteClassification[Classifier.mCurrencyCodeIndex],
+                    mBanknoteClassification[Classifier.mCurrencyValueIndex]
+            );
+            setResult(RESULT_OK, resultIntent);
+            finish();
+        }
+    }
+
+    /**
      * AsyncTask used to run the ImagePreprocessor. When complete calls the Classifier.
      */
     private class PreProcessorAsyncTask extends AsyncTask<String, Integer, Void>{
@@ -181,7 +198,8 @@ public class ProcessingActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Log.v(TAG, "C complete");
-            updateLoadingIcon("Classification Complete..", 80);
+            updateLoadingIcon("Classification Complete..", 100);
+            returnResult(false);
         }
     }
 }

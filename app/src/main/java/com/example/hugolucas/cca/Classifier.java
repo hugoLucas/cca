@@ -36,8 +36,8 @@ public class Classifier {
 
     private static String TAG = "hugo.Classifier";
 
-    private static final int mCurrencyCodeIndex = 0;
-    private static final int mCurrencyValueIndex = 1;
+    public static final int mCurrencyCodeIndex = 0;
+    public static final int mCurrencyValueIndex = 1;
 
     private Context mContext;
 

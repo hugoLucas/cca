@@ -24,7 +24,8 @@ public class ResultsActivity extends AppCompatActivity{
 
     private static String mTargetCurrency;
 
-    public Intent buildIntent(Context context, String sourceCurrency, String sourceCurrencyValue){
+    public static Intent buildIntent(Context context, String sourceCurrency,
+                                     String sourceCurrencyValue){
         Intent intent = new Intent(context, ResultsActivity.class);
         intent.putExtra(CODE, sourceCurrency);
         intent.putExtra(VAL, sourceCurrencyValue);
