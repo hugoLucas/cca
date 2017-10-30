@@ -84,6 +84,8 @@ public class ExchangeFragment extends Fragment {
 
         mSourceCurrency = getArguments().getString(CODE, "USD");
         mSourceValue = Integer.parseInt(getArguments().getString(VAL, "10"));
+
+        Log.v(TAG, "Passed: " + mSourceCurrency + ", " + mSourceValue);
     }
 
     @Nullable @Override
