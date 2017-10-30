@@ -135,7 +135,8 @@ public class ProcessingActivity extends AppCompatActivity {
         if (!error) {
             Intent resultIntent = CameraActivity.buildProcessingResultIntent(
                     mBanknoteClassification[Classifier.mCurrencyCodeIndex],
-                    mBanknoteClassification[Classifier.mCurrencyValueIndex]
+                    mBanknoteClassification[Classifier.mCurrencyValueIndex],
+                    mPhotoPath
             );
             setResult(RESULT_OK, resultIntent);
             finish();

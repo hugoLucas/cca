@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
@@ -45,6 +46,7 @@ public class CameraActivity extends AppCompatActivity {
 
     private static final String RESULT_CURRENCY_CODE = "camera_activity_code";
     private static final String RESULT_CURRENCY_VALUE = "camera_activity_value";
+    private static final String RESULT_CURRENCY_PIC = "camera_activity_picture";
 
     private static final int CAMERA_PERMISSION = 0;
     private static final int WRITE_PERMISSION = 1;
@@ -178,18 +180,6 @@ public class CameraActivity extends AppCompatActivity {
                 photoPath), PROC_REQ_CODE);
     }
 
-    /**
-     * Once the ProcessingActivity has ended successfully, passes the information to the
-     * ResultsActivity.
-     *
-     * @param code      the three-letter currency code used by Fixer.io API
-     * @param value     the value, in its local currency, of the classified banknote
-     */
-    public void startResultsActivity(String code, String value){
-        Intent resActIntent = ResultsActivity.buildIntent(this, code, value);
-        startActivity(resActIntent);
-    }
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         switch(requestCode){
@@ -199,13 +189,27 @@ public class CameraActivity extends AppCompatActivity {
                     Log.v(TAG, "Reported back successfully!");
                     String currencyCode = data.getStringExtra(RESULT_CURRENCY_CODE);
                     String currencyValue = data.getStringExtra(RESULT_CURRENCY_VALUE);
+                    String currencyPic = data.getStringExtra(RESULT_CURRENCY_PIC);
 
-                    startResultsActivity(currencyCode, currencyValue);
+                    startResultsActivity(currencyCode, currencyValue, currencyPic);
                 }
                 break;
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    /**
+     * Once the ProcessingActivity has ended successfully, passes the information to the
+     * ResultsActivity.
+     *
+     * @param code      the three-letter currency code used by Fixer.io API
+     * @param value     the value, in its local currency, of the classified banknote
+     */
+    public void startResultsActivity(String code, String value, String path){
+        Log.v(TAG, "Starting ResultsActivity....");
+        Intent resActIntent = ResultsActivity.buildIntent(this, code, value, path);
+        startActivity(resActIntent);
     }
 
     /**
@@ -415,10 +419,12 @@ public class CameraActivity extends AppCompatActivity {
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 
-    public static Intent buildProcessingResultIntent(String currencyCode, String currencyValue){
+    public static Intent buildProcessingResultIntent(String currencyCode, String currencyValue,
+                                                     String photoPath){
         Intent resultIntent = new Intent();
         resultIntent.putExtra(RESULT_CURRENCY_CODE, currencyCode);
         resultIntent.putExtra(RESULT_CURRENCY_VALUE, currencyValue);
+        resultIntent.putExtra(RESULT_CURRENCY_PIC, photoPath);
 
         return resultIntent;
     }
