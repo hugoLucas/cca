@@ -170,7 +170,7 @@ public class ProcessingActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Log.v(TAG, "PP complete");
-            updateLoadingIcon("Pre-processing complete...", 40);
+            updateLoadingIcon("Pre-processing complete...", 25);
             new ClassifierAsyncTask().execute();
         }
     }
@@ -179,19 +179,33 @@ public class ProcessingActivity extends AppCompatActivity {
      * AsyncTask used to run the Classifier. When complete calls method that starts the
      * ResultsActivity.
      */
-    private class ClassifierAsyncTask extends AsyncTask<Void, Void, Void>{
+    private class ClassifierAsyncTask extends AsyncTask<Void, Integer, Void>{
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             Log.v(TAG, "C pre-execute");
-            updateLoadingIcon("Starting Classification...", 60);
+            updateLoadingIcon("Starting Classification...", 30);
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
             Log.v(TAG, "C running");
-            mBanknoteClassification = mClassifier.classify(mBanknote);
+            int currentProgress = 30;
+            int progressStep = mClassifier.calculateStep();
+
+            publishProgress(currentProgress);
+            mClassifier.extractImageFeatures(mBanknote);
+            publishProgress(currentProgress += 20);
+
+            while(!mClassifier.comparisonComplete()){
+                mClassifier.processFile();
+                currentProgress += progressStep;
+
+                publishProgress(currentProgress);
+            }
+            mBanknoteClassification = mClassifier.getResults();
+
             return null;
         }
 
@@ -201,6 +215,20 @@ public class ProcessingActivity extends AppCompatActivity {
             Log.v(TAG, "C complete");
             updateLoadingIcon("Classification Complete..", 100);
             returnResult(false);
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+
+            int updateValue = values[0];
+            if(updateValue == 30){
+                updateLoadingIcon("Extracting features....", updateValue);
+            }else if (updateValue == 50) {
+                updateLoadingIcon("Features extracted...", updateValue);
+            }else{
+                updateLoadingIcon("Classifying...", updateValue);
+            }
         }
     }
 }

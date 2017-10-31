@@ -41,23 +41,96 @@ public class Classifier {
 
     private Context mContext;
 
+    private String [] mDBFileList;
+    private int mCurrentFileIndex;
+    private MatOfKeyPoint mDescriptors;
+
+    private String mBestFitFileName;
+    private int mBestFitMatches;
+
     public Classifier(Context c){
         mContext = c;
+        mCurrentFileIndex = 0;
+
+        mBestFitFileName = null;
+        mBestFitMatches = -1;
     }
 
     /**
-     * Coordinates the classification of a new banknote image. Calls methods to classify the
-     * banknote and compare it to the notes in the database.
+     * Returns the integer amount the loading icon should be updated for each file in the
+     * image database that has been processed.
      *
-     * @param image     the image of the unknown banknote
-     * @return          a String representation of the classification results
+     * @return  an integer step
      */
-    public String[] classify(Mat image){
-        MatOfKeyPoint keyPoints = detectFeatures(image, null);
-        MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);
-        String dbFileName = featureMatching(descriptors);
+    public int calculateStep(){
+        mDBFileList = loadImageDatabase();
+        try {
+            return 49 / mDBFileList.length;
+        }catch (NullPointerException e){
+            Log.v(TAG, "Database failed to load correctly!");
+            return 100;
+        }
+    }
 
-        return generateResultsString(dbFileName);
+    /**
+     * Detects features of unknown banknote. Split from rest of processing in order to provide
+     * a more informative loading screen.
+     *
+     * @param image     Mat of unknown banknote
+     */
+    public void extractImageFeatures(Mat image){
+        mDescriptors = getDescriptors(image, detectFeatures(image, null));
+    }
+
+    /**
+     * Determines if there are more files to be processed.
+     *
+     * @return      True if more files to process, false otherwise
+     */
+    public boolean comparisonComplete(){
+        return mCurrentFileIndex >= mDBFileList.length;
+    }
+
+    /**
+     * Compares the unknown banknote to one set of database images and masks.
+     */
+    public void processFile(){
+        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
+
+        if (mDBFileList == null){
+            Log.v(TAG, "Error! File database could not be loaded.");
+        }else {
+            List<MatOfDMatch> matches = new LinkedList<>();
+            String fileName = mDBFileList[mCurrentFileIndex];
+
+            Mat image = loadAsset(fileName, "images");
+            Mat mask = loadAsset(fileName, "masks");
+
+            Log.v(TAG, "Matching" + fileName + "features...");
+            MatOfKeyPoint keyPoints = detectFeatures(image, mask);
+            MatOfKeyPoint databaseDescriptors = getDescriptors(image, keyPoints);
+            matcher.knnMatch(mDescriptors, databaseDescriptors, matches, 2);
+            Log.v(TAG, fileName + " features matched!");
+
+            LinkedList<DMatch> good_matches = new LinkedList<>();
+            for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
+                MatOfDMatch matOfDMatch = iterator.next();
+                if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 0.9) {
+                    good_matches.add(matOfDMatch.toArray()[0]);
+                }
+            }
+
+            if (good_matches.size() > mBestFitMatches){
+                mBestFitMatches = good_matches.size();
+                mBestFitFileName = fileName;
+            }
+
+            mCurrentFileIndex ++;
+        }
+    }
+
+    public String [] getResults(){
+        return generateResultsString(mBestFitFileName);
     }
 
     /**
@@ -91,57 +164,6 @@ public class Classifier {
         extractor.compute(image, keyPoints, descriptors);
 
         return descriptors;
-    }
-
-    /**
-     * Iterates through the image database and finds the banknote in the database that most
-     * closely matches the unknown banknote.
-     *
-     * @param targetDescriptors     a list of descriptors generated from the unknown banknote image
-     * @return                      the file name of the DB that most closely matches
-     */
-    private String featureMatching(MatOfKeyPoint targetDescriptors){
-        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
-
-        String [] fileNames = loadImageDatabase();
-        int bestFit = -1;
-        String bestFitFilename = null;
-
-        if (fileNames == null){
-            return null;
-        }else {
-            for (String fileName : fileNames) {
-                List<MatOfDMatch> matches = new LinkedList<>();
-
-                Mat image = loadAsset(fileName, "images");
-                Mat mask = loadAsset(fileName, "masks");
-
-                Log.v(TAG, "Matching" + fileName + "features...");
-                MatOfKeyPoint keyPoints = detectFeatures(image, mask);
-                MatOfKeyPoint databaseDescriptors = getDescriptors(image, keyPoints);
-                matcher.knnMatch(targetDescriptors, databaseDescriptors, matches, 2);
-                Log.v(TAG, fileName + " features matched!");
-
-                LinkedList<DMatch> good_matches = new LinkedList<>();
-                for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
-                    MatOfDMatch matOfDMatch = iterator.next();
-                    if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 0.9) {
-                        good_matches.add(matOfDMatch.toArray()[0]);
-                    }
-                }
-
-                if (good_matches.size() > bestFit){
-                    bestFit = good_matches.size();
-                    bestFitFilename = fileName;
-                }
-            }
-
-            Log.v(TAG, "*** BEST FIT ***");
-            Log.v(TAG, bestFitFilename + " " + bestFit);
-            Log.v(TAG, "*** BEST FIT ***");
-
-            return bestFitFilename;
-        }
     }
 
     /**

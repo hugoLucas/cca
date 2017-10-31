@@ -4,20 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context="com.example.hugolucas.cca.ProcessingActivity"
-    android:orientation="vertical">
+    tools:context="com.example.hugolucas.cca.ProcessingActivity">
 
     <me.itangqi.waveloadingview.WaveLoadingView
         android:id="@+id/waveLoadingView"
-        android:layout_width="350dp"
-        android:layout_height="350dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="50dp"
-        android:layout_marginBottom="50dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:wlv_borderColor="@color/colorAccent"
-        app:wlv_borderWidth="3dp"
         app:wlv_progressValue="0"
-        app:wlv_shapeType="circle"
+        app:wlv_shapeType="rectangle"
         app:wlv_round_rectangle="true"
         app:wlv_triangle_direction="north"
         app:wlv_titleCenterStrokeColor="@android:color/holo_blue_dark"
@@ -25,6 +20,6 @@
         app:wlv_titleCenter="Loading..."
         app:wlv_titleCenterColor="@android:color/white"
         app:wlv_titleCenterSize="24sp"
-        app:wlv_waveAmplitude="25"
+        app:wlv_waveAmplitude="30"
         app:wlv_waveColor="@color/colorAccent"/>
 </LinearLayout>
