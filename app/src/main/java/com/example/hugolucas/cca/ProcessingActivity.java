@@ -4,10 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
+import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -27,11 +29,18 @@ public class ProcessingActivity extends AppCompatActivity {
     private String mPhotoPath;
     private Mat mBanknote;
 
+    private String [] mBanknoteClassification;
     private ImagePreprocessor mProcessor;
     private Classifier mClassifier;
 
     private WaveLoadingView mWaveLoadingView;
 
+    /**
+     * Ensures that the OpenCV library is loaded before any code using any OpenCV methods is
+     * called. Once the OpenCV library has been loaded successfully, an AsyncTask starting the
+     * image pre-processing is started. This ensures the loading icon can be updated while the
+     * ImagePreprocessor is running.
+     */
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
         public void onManagerConnected(int status) {
@@ -39,8 +48,8 @@ public class ProcessingActivity extends AppCompatActivity {
                 case LoaderCallbackInterface.SUCCESS:
                 {
                     Log.i(TAG, "OpenCV loaded successfully");
+                    System.loadLibrary("opencv_java");
                     System.loadLibrary("nonfree");
-
                     new PreProcessorAsyncTask().execute(mPhotoPath);
                 } break;
                 default:
@@ -75,9 +84,6 @@ public class ProcessingActivity extends AppCompatActivity {
         mWaveLoadingView = (WaveLoadingView) findViewById(R.id.waveLoadingView);
         updateLoadingIcon("Loading Image Libraries...", 0);
         mWaveLoadingView.startAnimation();
-
-        mProcessor = new ImagePreprocessor();
-        mClassifier = new Classifier(this.getApplicationContext());
     }
 
     @Override
@@ -93,6 +99,12 @@ public class ProcessingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Updates the loading icon to a specific progress value and with a specific message.
+     *
+     * @param message       the String message to display to the User indicating progress
+     * @param progress      a value out of 100 indicating progress
+     */
     public void updateLoadingIcon(String message, int progress){
         mWaveLoadingView.setCenterTitle(message);
         mWaveLoadingView.setProgressValue(progress);
@@ -100,7 +112,7 @@ public class ProcessingActivity extends AppCompatActivity {
 
     /**
      * Displays the Mat image loaded by the application and pre-processed by the ImagePreprocessor.
-     * Used for debugging, do not processed display image directly to User.
+     * Used for debugging, do not display image directly to User.
      *
      * @param image     a Mat of the image taken by the User for classification
      */
@@ -114,6 +126,26 @@ public class ProcessingActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Returns classification result to calling activity if no errors were detected.
+     *
+     * @param error     true if error, false otherwise
+     */
+    public void returnResult(boolean error){
+        if (!error) {
+            Intent resultIntent = CameraActivity.buildProcessingResultIntent(
+                    mBanknoteClassification[Classifier.mCurrencyCodeIndex],
+                    mBanknoteClassification[Classifier.mCurrencyValueIndex],
+                    mPhotoPath
+            );
+            setResult(RESULT_OK, resultIntent);
+            finish();
+        }
+    }
+
+    /**
+     * AsyncTask used to run the ImagePreprocessor. When complete calls the Classifier.
+     */
     private class PreProcessorAsyncTask extends AsyncTask<String, Integer, Void>{
 
         @Override
@@ -127,6 +159,8 @@ public class ProcessingActivity extends AppCompatActivity {
         protected Void doInBackground(String... strings) {
             Log.v(TAG, "PP running");
             String path = strings[0];
+            mProcessor = new ImagePreprocessor();
+            mClassifier = new Classifier(getApplicationContext());
             mBanknote = mProcessor.preprocessImage(path);
 
             return null;
@@ -136,25 +170,46 @@ public class ProcessingActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Log.v(TAG, "PP complete");
-            updateLoadingIcon("Pre-processing complete...", 40);
+            updateLoadingIcon("Pre-processing complete...", 25);
             new ClassifierAsyncTask().execute();
         }
     }
 
-    private class ClassifierAsyncTask extends AsyncTask<Void, Void, Void>{
+    /**
+     * AsyncTask used to run the Classifier. When complete calls method that starts the
+     * ResultsActivity.
+     */
+    private class ClassifierAsyncTask extends AsyncTask<Void, Integer, Void>{
 
+        private int START = 30;
+        private int PROC_JUMP = 20;
+        private int WIDTH = 49;
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             Log.v(TAG, "C pre-execute");
-            updateLoadingIcon("Starting Classification...", 60);
+            updateLoadingIcon("Starting Classification...", START);
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
             Log.v(TAG, "C running");
-            mClassifier.classify(mBanknote);
+            int currentProgress = START;
+            int progressStep = mClassifier.calculateStep(WIDTH);
+
+            publishProgress(currentProgress);
+            mClassifier.extractImageFeatures(mBanknote);
+            publishProgress(currentProgress += PROC_JUMP);
+
+            while(!mClassifier.comparisonComplete()){
+                mClassifier.processFile();
+                currentProgress += progressStep;
+
+                publishProgress(currentProgress);
+            }
+            mBanknoteClassification = mClassifier.getResults();
+
             return null;
         }
 
@@ -162,7 +217,22 @@ public class ProcessingActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Log.v(TAG, "C complete");
-            updateLoadingIcon("Classification Complete..", 80);
+            updateLoadingIcon("Classification Complete..", 100);
+            returnResult(false);
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+
+            int updateValue = values[0];
+            if(updateValue == 30){
+                updateLoadingIcon("Extracting features....", updateValue);
+            }else if (updateValue == 50) {
+                updateLoadingIcon("Features extracted...", updateValue);
+            }else{
+                updateLoadingIcon("Classifying...", updateValue);
+            }
         }
     }
 }

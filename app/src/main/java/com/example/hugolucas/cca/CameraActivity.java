@@ -1,9 +1,13 @@
 package com.example.hugolucas.cca;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
@@ -40,10 +44,17 @@ public class CameraActivity extends AppCompatActivity {
     private static final String TAG = "hugo.CameraActivity";
     private static final String FRAGMENT_TAG = "CAMERA";
 
-    private static final int CAMERA_PERMISSION = 100;
-    private static final int CLASS_REQ_CODE = 1;
+    private static final String RESULT_CURRENCY_CODE = "camera_activity_code";
+    private static final String RESULT_CURRENCY_VALUE = "camera_activity_value";
+    private static final String RESULT_CURRENCY_PIC = "camera_activity_picture";
 
-    private static boolean displayOnce = false;
+    private static final int CAMERA_PERMISSION = 0;
+    private static final int WRITE_PERMISSION = 1;
+    private static final int READ_PERMISSION = 2;
+
+    private static final int PROC_REQ_CODE = 1;
+
+    private static boolean displayArray [] = new boolean[3];
 
     @BindView(R.id.flash_switch_button)
     FlashSwitchView mFlashSwitchButton;
@@ -69,7 +80,64 @@ public class CameraActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        requestReadWritePermissions();
         buildCamera();
+    }
+
+    /**
+     * Requests permissions to read and write to external memory. Needed to save and load images
+     * of currencies.
+     */
+    public void requestReadWritePermissions(){
+        final String writePermission = Manifest.permission.READ_EXTERNAL_STORAGE;
+        final String readPermission = Manifest.permission.WRITE_EXTERNAL_STORAGE;
+
+        int writeCheck = ActivityCompat.checkSelfPermission(this, writePermission);
+        int readCheck = ActivityCompat.checkSelfPermission(this, readPermission);
+
+        if (writeCheck != PackageManager.PERMISSION_GRANTED){
+            Log.v(TAG, "External Memory Read Permission not yet granted.");
+            askForPermission("External Memory Write", writePermission,
+                    "Need to save images to external memory", WRITE_PERMISSION, this);
+        }
+        if (readCheck != PackageManager.PERMISSION_GRANTED){
+            Log.v(TAG, "External Memory Write Permission not yet granted.");
+            askForPermission("External Memory Read", readPermission,
+                    "Need to read images from external memory", READ_PERMISSION, this);
+        }
+    }
+
+    /**
+     * Helper method to request and respond to a user permission.
+     *
+     * @param pName                 the label of the permission to display to the user
+     * @param pCode                 the manifest value of the permission
+     * @param permissionMessage     the explanation message to display to the user
+     * @param index                 the index in the displayArray of the permission
+     * @param activity              the calling activity, needed for dialog
+     */
+    public void askForPermission(final String pName, final String pCode, String permissionMessage,
+                                 final int index, final Activity activity) {
+        Log.v(TAG, pName + "not yet granted.");
+        boolean explainPermission = ActivityCompat.shouldShowRequestPermissionRationale(this,
+                pCode);
+
+        if (explainPermission && !displayArray[index]) {
+            Log.v(TAG, "Permission explanation requested for " + pName);
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle( pName + " Explanation");
+            builder.setMessage(permissionMessage);
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    Log.v(TAG, "User has read permission explanation for " + pName);
+                    ActivityCompat.requestPermissions(activity, new String[]{pCode}, index);
+                }
+            });
+            builder.show();
+
+            displayArray[index] = true;
+        }else
+            ActivityCompat.requestPermissions(activity, new String[]{pCode}, index);
     }
 
     /**
@@ -109,7 +177,39 @@ public class CameraActivity extends AppCompatActivity {
      */
     public void startImageProcessing(String photoPath){
         startActivityForResult(ProcessingActivity.genIntent(getApplicationContext(),
-                photoPath), CLASS_REQ_CODE);
+                photoPath), PROC_REQ_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode){
+            case PROC_REQ_CODE: {
+                if(resultCode == RESULT_OK) {
+                    /* Classifier succeeded, start ResultsActivity */
+                    Log.v(TAG, "Reported back successfully!");
+                    String currencyCode = data.getStringExtra(RESULT_CURRENCY_CODE);
+                    String currencyValue = data.getStringExtra(RESULT_CURRENCY_VALUE);
+                    String currencyPic = data.getStringExtra(RESULT_CURRENCY_PIC);
+
+                    startResultsActivity(currencyCode, currencyValue, currencyPic);
+                }
+                break;
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    /**
+     * Once the ProcessingActivity has ended successfully, passes the information to the
+     * ResultsActivity.
+     *
+     * @param code      the three-letter currency code used by Fixer.io API
+     * @param value     the value, in its local currency, of the classified banknote
+     */
+    public void startResultsActivity(String code, String value, String path){
+        Log.v(TAG, "Starting ResultsActivity....");
+        Intent resActIntent = ResultsActivity.buildIntent(this, code, value, path);
+        startActivity(resActIntent);
     }
 
     /**
@@ -120,30 +220,12 @@ public class CameraActivity extends AppCompatActivity {
         final String cameraPermission = Manifest.permission.CAMERA;
         int permissionCheck = ActivityCompat.checkSelfPermission(this, cameraPermission);
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            Log.v(TAG, "Camera permission not yet granted.");
-            boolean explainPermission = ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    cameraPermission);
-
-            if (explainPermission && !displayOnce) {
-                Log.v(TAG, "Permission explanation requested.");
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setTitle("Camera Permission Explanation");
-                builder.setMessage("This application needs Camera permissions in order to take" +
-                        "store images of unknown currencies.");
-                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        Log.v(TAG, "User has read permission explanation.");
-                        requestCameraPermission(cameraPermission);
-                    }
-                });
-                builder.show();
-                displayOnce = true;
-            }
-            else
-                requestCameraPermission(cameraPermission);
-        }else {
-            addCamera();
+            askForPermission("Camera Permission", cameraPermission,
+                    "This application needs Camera permissions in order to take store images of " +
+                            "unknown currencies.", CAMERA_PERMISSION, this);
         }
+        else
+            addCamera();
     }
 
     @Override
@@ -335,6 +417,16 @@ public class CameraActivity extends AppCompatActivity {
      */
     private boolean canFullyAccessExternalStorage(){
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
+    }
+
+    public static Intent buildProcessingResultIntent(String currencyCode, String currencyValue,
+                                                     String photoPath){
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(RESULT_CURRENCY_CODE, currencyCode);
+        resultIntent.putExtra(RESULT_CURRENCY_VALUE, currencyValue);
+        resultIntent.putExtra(RESULT_CURRENCY_PIC, photoPath);
+
+        return resultIntent;
     }
 
     /**

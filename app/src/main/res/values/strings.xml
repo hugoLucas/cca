@@ -1,3 +1,68 @@
 <resources>
     <string name="app_name">CCA</string>
+    <string name="country_label">Country of Origin</string>
+    <string name="country_result_placeholder">Insert Country Here</string>
+    <string name="denomination_label">Denomination</string>
+    <string name="value_result_placeholder">100</string>
+    <string name="map_fragment_button_label">Map</string>
+    <string name="exchange_fragment_button_label">Exchange</string>
+    <string name="options_menu_title">Options Menu</string>
+    <string name="search_radius_title">Search Radius</string>
+    <string name="affirmative_selection">OK</string>
+    <string name="graph_converted_value_data_label">Adjusted Value</string>
+
+    <!-- API Keys -->
+    <string name="mapbox_api_key">pk.eyJ1IjoiaHVnb2Y3NTYiLCJhIjoiY2o5OTc4N3I0MHBjZTJ3cW1tYXBsOTUzZyJ9.h2WlhaCYJMlkF_Nq88NDVg</string>
+    <string name="google_maps_api_key">AIzaSyCWL5PTKbHxhPcYmG3IIc0wm3y93CPhoT4</string>
+
+    <!-- Fine Access Location Permission -->
+    <string name="loc_title">Location Permission Request</string>
+    <string name="loc_explanation">This application needs access to your location in order to
+        provide you with nearby banks, and other financial institutions, that can exchange
+        currencies.</string>
+    <string name="loc_denied">Enable this permission in order to continue.</string>
+
+    <!-- MapBox MapView Strings -->
+    <string name="map_user_title">Your Location</string>
+
+    <!-- Google Maps API Strings -->
+    <string name="baseUrl">https://maps.googleapis.com/maps/api/place/nearbysearch/json?</string>
+    <string name="dummy_info_window_title">Filler Title</string>
+    <string name="dummy_info_window_address">Dummy Marker Address</string>
+
+    <!-- Dialog Picker Labels -->
+    <string-array name="dialog_currencies">
+        <item>AUD</item>
+        <item>BGN</item>
+        <item>BRL</item>
+        <item>CAD</item>
+        <item>CHF</item>
+        <item>CNY</item>
+        <item>CZK</item>
+        <item>DKK</item>
+        <item>GBP</item>
+        <item>HKD</item>
+        <item>HRK</item>
+        <item>HUF</item>
+        <item>IDR</item>
+        <item>ILS</item>
+        <item>INR</item>
+        <item>JPY</item>
+        <item>KRW</item>
+        <item>MXN</item>
+        <item>MYR</item>
+        <item>NOK</item>
+        <item>PHP</item>
+        <item>PLN</item>
+        <item>RON</item>
+        <item>RUB</item>
+        <item>SEK</item>
+        <item>SGD</item>
+        <item>THB</item>
+        <item>TRY</item>
+        <item>ZAR</item>
+        <item>EUR</item>
+        <item>NZD</item>
+    </string-array>
+
 </resources>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:id="@+id/custom_info_window"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <com.google.android.gms.maps.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:paddingEnd="10dp"
+        android:paddingStart="10dp"
+        android:paddingBottom="20dp">
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/floating_my_location"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_mylocation"
+            android:layout_marginBottom="20dp"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/floating_increase_distance"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/ic_increase_search_radius" />
+    </LinearLayout>
+</RelativeLayout>

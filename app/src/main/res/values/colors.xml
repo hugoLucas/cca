@@ -7,4 +7,10 @@
     <color name="blue_text">#8500ffee</color>
     <color name="primary_dark_material_light">#414141</color>
     <color name="background_material_light">#777676</color>
+
+    <!-- Graph Colors in ExchangeFragment -->
+    <color name="graph_data_red">#e53935</color>
+    <color name="graph_data_blue">#304ffe</color>
+    <color name="graph_data_green">#64dd17</color>
+    <color name="graph_background_white">#ffffff</color>
 </resources>

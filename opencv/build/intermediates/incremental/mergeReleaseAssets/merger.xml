@@ -1,2 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merger version="3"><dataSet config="main"><source path="/media/hugo/5F51-D173/CCA/opencv/src/main/assets"/><source path="/media/hugo/5F51-D173/CCA/opencv/build/generated/assets/shaders/release"/></dataSet><dataSet config="release"><source path="/media/hugo/5F51-D173/CCA/opencv/src/release/assets"/></dataSet></merger>
+<merger version="3"><dataSet config="main"><source path="/home/hugolucas/AndroidStudioProjects/CCA/opencv/src/main/assets"/><source path="/home/hugolucas/AndroidStudioProjects/CCA/opencv/build/generated/assets/shaders/release"/></dataSet><dataSet config="release"><source path="/home/hugolucas/AndroidStudioProjects/CCA/opencv/src/release/assets"/></dataSet></merger>

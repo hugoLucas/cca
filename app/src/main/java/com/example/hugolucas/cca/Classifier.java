@@ -36,18 +36,102 @@ public class Classifier {
 
     private static String TAG = "hugo.Classifier";
 
+    public static final int mCurrencyCodeIndex = 0;
+    public static final int mCurrencyValueIndex = 1;
+
     private Context mContext;
+
+    private String [] mDBFileList;
+    private int mCurrentFileIndex;
+    private MatOfKeyPoint mDescriptors;
+
+    private String mBestFitFileName;
+    private int mBestFitMatches;
 
     public Classifier(Context c){
         mContext = c;
+        mCurrentFileIndex = 0;
+
+        mBestFitFileName = null;
+        mBestFitMatches = -1;
     }
 
-    public void classify(Mat image){
-        MatOfKeyPoint keyPoints = detectFeatures(image);
-        MatOfKeyPoint descriptors = getDescriptors(image, keyPoints);
+    /**
+     * Returns the integer amount the loading icon should be updated for each file in the
+     * image database that has been processed.
+     *
+     * @param width     the total amount of progress space (out of 100) devoted to classification
+     * @return          an integer step
+     */
+    public int calculateStep(int width){
+        mDBFileList = loadImageDatabase();
+        try {
+            return width / mDBFileList.length;
+        }catch (NullPointerException e){
+            Log.v(TAG, "Database failed to load correctly!");
+            return 100;
+        }
+    }
 
-        /*Mat output = drawKeyPoints(image, keyPoints);*/
-        featureMatching(descriptors);
+    /**
+     * Detects features of unknown banknote. Split from rest of processing in order to provide
+     * a more informative loading screen.
+     *
+     * @param image     Mat of unknown banknote
+     */
+    public void extractImageFeatures(Mat image){
+        mDescriptors = getDescriptors(image, detectFeatures(image, null));
+    }
+
+    /**
+     * Determines if there are more files to be processed.
+     *
+     * @return      True if more files to process, false otherwise
+     */
+    public boolean comparisonComplete(){
+        return mCurrentFileIndex >= mDBFileList.length;
+    }
+
+    /**
+     * Compares the unknown banknote to one set of database images and masks.
+     */
+    public void processFile(){
+        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
+
+        if (mDBFileList == null){
+            Log.v(TAG, "Error! File database could not be loaded.");
+        }else {
+            List<MatOfDMatch> matches = new LinkedList<>();
+            String fileName = mDBFileList[mCurrentFileIndex];
+
+            Mat image = loadAsset(fileName, "images");
+            Mat mask = loadAsset(fileName, "masks");
+
+            Log.v(TAG, "Matching" + fileName + "features...");
+            MatOfKeyPoint keyPoints = detectFeatures(image, mask);
+            MatOfKeyPoint databaseDescriptors = getDescriptors(image, keyPoints);
+            matcher.knnMatch(mDescriptors, databaseDescriptors, matches, 2);
+            Log.v(TAG, fileName + " features matched!");
+
+            LinkedList<DMatch> good_matches = new LinkedList<>();
+            for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
+                MatOfDMatch matOfDMatch = iterator.next();
+                if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 0.9) {
+                    good_matches.add(matOfDMatch.toArray()[0]);
+                }
+            }
+
+            if (good_matches.size() > mBestFitMatches){
+                mBestFitMatches = good_matches.size();
+                mBestFitFileName = fileName;
+            }
+
+            mCurrentFileIndex ++;
+        }
+    }
+
+    public String [] getResults(){
+        return generateResultsString(mBestFitFileName);
     }
 
     /**
@@ -56,14 +140,25 @@ public class Classifier {
      * @param image     the image to apply SIFT to
      * @return          a MatOfKeyPoint representing the features detected
      */
-    private MatOfKeyPoint detectFeatures(Mat image){
+    private MatOfKeyPoint detectFeatures(Mat image, Mat mask){
         MatOfKeyPoint keyPoints = new MatOfKeyPoint();
         FeatureDetector detector = FeatureDetector.create(FeatureDetector.SIFT);
-        detector.detect(image, keyPoints);
+
+        if (mask == null)
+            detector.detect(image, keyPoints);
+        else
+            detector.detect(image, keyPoints, mask);
 
         return keyPoints;
     }
 
+    /**
+     * Generates a list of descriptors from a list of key points.
+     *
+     * @param image         the image to classify
+     * @param keyPoints     a list of MatOfKeyPoint generated from the image
+     * @return              a list of MatOfKeyPoint generated from keyPoints
+     */
     private MatOfKeyPoint getDescriptors(Mat image, MatOfKeyPoint keyPoints){
         MatOfKeyPoint descriptors = new MatOfKeyPoint();
         DescriptorExtractor extractor = DescriptorExtractor.create(DescriptorExtractor.SIFT);
@@ -72,51 +167,25 @@ public class Classifier {
         return descriptors;
     }
 
-    private String featureMatching(MatOfKeyPoint targetDescriptors){
-        DescriptorMatcher matcher = DescriptorMatcher.create(DescriptorMatcher.FLANNBASED);
-
-        String [] fileNames = loadImageDatabase();
-        int bestFit = -1;
-        String bestFitFilename = null;
-
-        if (fileNames == null){
-            return null;
-        }else {
-            for (String fileName : fileNames) {
-                List<MatOfDMatch> matches = new LinkedList<>();
-
-                Mat image = loadImageAsset(fileName);
-
-                Log.v(TAG, fileName + " cols = " + image.cols());
-                Log.v(TAG, fileName + " rows = " + image.rows());
-
-                MatOfKeyPoint keyPoints = detectFeatures(image);
-                MatOfKeyPoint databaseDescriptors = getDescriptors(image, keyPoints);
-
-                matcher.knnMatch(targetDescriptors, databaseDescriptors, matches, 2);
-
-                LinkedList<DMatch> good_matches = new LinkedList<>();
-                for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
-                    MatOfDMatch matOfDMatch = iterator.next();
-                    if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 0.9) {
-                        good_matches.add(matOfDMatch.toArray()[0]);
-                    }
-                }
-
-                if (good_matches.size() > bestFit){
-                    bestFit = good_matches.size();
-                    bestFitFilename = fileName;
-                }
-            }
-
-            Log.v(TAG, "*** BEST FIT ***");
-            Log.v(TAG, bestFitFilename + " " + bestFit);
-            Log.v(TAG, "*** BEST FIT ***");
-
-            return bestFitFilename;
-        }
+    /**
+     * Extracts the 3-letter currency code and n-digit value of the matched banknote from its
+     * filename.
+     *
+     * @param fileName      the file name the unknown banknote most closely matches from DB
+     * @return              a string array containing the matched currency code and value
+     */
+    private String[] generateResultsString(String fileName){
+        String [] components = fileName.split("_");
+        return new String[] {components[mCurrencyCodeIndex], components[mCurrencyValueIndex]};
     }
 
+    /**
+     * Debugging function, used to display key points matched in an image.
+     *
+     * @param image         the image of the unknown banknote
+     * @param keyPoints     key points generated by SIFT
+     * @return              an output image with the key points annotated
+     */
     private Mat drawKeyPoints(Mat image, MatOfKeyPoint keyPoints){
         Mat outputImage = image.clone();
         Features2d.drawKeypoints(image, keyPoints, outputImage, new Scalar(255, 0, 0),
@@ -125,21 +194,35 @@ public class Classifier {
         return outputImage;
     }
 
-    private Mat loadImageAsset(String imageName){
+    /**
+     * Loads an image asset from Android device memory.
+     *
+     * @param assetName         the file name of the image asset
+     * @param assetDirectory    the directory under the assets folder where the image asset is
+     * @return                  a Mat file of the image asset
+     */
+    private Mat loadAsset(String assetName, String assetDirectory){
+        Log.v(TAG, "Loading asset " + assetName + "...");
         AssetManager manager = mContext.getAssets();
         try {
-            InputStream inputStream = manager.open("currency_images/" + imageName);
-            return readInputStreamIntoMat(inputStream);
-
+            InputStream imageStream = manager.open("currency_images/" + assetDirectory + "/" +
+                    assetName);
+            Log.v(TAG, "Asset " + assetName + " loaded successfully!");
+            return readInputStreamIntoMat(imageStream);
         } catch (IOException e) {
             return null;
         }
     }
 
+    /**
+     * Creates a list of all images in the image database.
+     *
+     * @return      a list of filenames
+     */
     private String [] loadImageDatabase(){
         AssetManager manager = mContext.getAssets();
         try{
-            return manager.list("currency_images");
+            return manager.list("currency_images/images");
         }catch (IOException e){
             return null;
         }
