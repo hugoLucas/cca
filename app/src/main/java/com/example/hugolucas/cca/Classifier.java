@@ -60,12 +60,13 @@ public class Classifier {
      * Returns the integer amount the loading icon should be updated for each file in the
      * image database that has been processed.
      *
-     * @return  an integer step
+     * @param width     the total amount of progress space (out of 100) devoted to classification
+     * @return          an integer step
      */
-    public int calculateStep(){
+    public int calculateStep(int width){
         mDBFileList = loadImageDatabase();
         try {
-            return 49 / mDBFileList.length;
+            return width / mDBFileList.length;
         }catch (NullPointerException e){
             Log.v(TAG, "Database failed to load correctly!");
             return 100;

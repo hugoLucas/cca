@@ -181,22 +181,26 @@ public class ProcessingActivity extends AppCompatActivity {
      */
     private class ClassifierAsyncTask extends AsyncTask<Void, Integer, Void>{
 
+        private int START = 30;
+        private int PROC_JUMP = 20;
+        private int WIDTH = 49;
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             Log.v(TAG, "C pre-execute");
-            updateLoadingIcon("Starting Classification...", 30);
+            updateLoadingIcon("Starting Classification...", START);
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
             Log.v(TAG, "C running");
-            int currentProgress = 30;
-            int progressStep = mClassifier.calculateStep();
+            int currentProgress = START;
+            int progressStep = mClassifier.calculateStep(WIDTH);
 
             publishProgress(currentProgress);
             mClassifier.extractImageFeatures(mBanknote);
-            publishProgress(currentProgress += 20);
+            publishProgress(currentProgress += PROC_JUMP);
 
             while(!mClassifier.comparisonComplete()){
                 mClassifier.processFile();
