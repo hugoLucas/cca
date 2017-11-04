@@ -4,16 +4,20 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.util.Log;
 
+import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.MatOfDMatch;
 import org.opencv.core.MatOfKeyPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.features2d.DMatch;
 import org.opencv.features2d.DescriptorExtractor;
 import org.opencv.features2d.DescriptorMatcher;
 import org.opencv.features2d.FeatureDetector;
 import org.opencv.features2d.Features2d;
+import org.opencv.features2d.KeyPoint;
 import org.opencv.highgui.Highgui;
 
 import java.io.ByteArrayOutputStream;
@@ -44,6 +48,7 @@ public class Classifier {
     private String [] mDBFileList;
     private int mCurrentFileIndex;
     private MatOfKeyPoint mDescriptors;
+    private MatOfKeyPoint mKeyPoints;
 
     private String mBestFitFileName;
     private int mBestFitMatches;
@@ -54,6 +59,9 @@ public class Classifier {
 
         mBestFitFileName = null;
         mBestFitMatches = -1;
+
+        mDescriptors = new MatOfKeyPoint();
+        mKeyPoints = new MatOfKeyPoint();
     }
 
     /**
@@ -80,7 +88,9 @@ public class Classifier {
      * @param image     Mat of unknown banknote
      */
     public void extractImageFeatures(Mat image){
-        mDescriptors = getDescriptors(image, detectFeatures(image, null));
+        mKeyPoints = detectFeatures(image, null);
+        mDescriptors = getDescriptors(image, mKeyPoints);
+        Log.v(TAG, "Features Extracted");
     }
 
     /**
@@ -116,17 +126,50 @@ public class Classifier {
             LinkedList<DMatch> good_matches = new LinkedList<>();
             for (Iterator<MatOfDMatch> iterator = matches.iterator(); iterator.hasNext();) {
                 MatOfDMatch matOfDMatch = iterator.next();
-                if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 0.9) {
+                if (matOfDMatch.toArray()[0].distance / matOfDMatch.toArray()[1].distance < 1.0) {
                     good_matches.add(matOfDMatch.toArray()[0]);
                 }
             }
 
-            if (good_matches.size() > mBestFitMatches){
-                mBestFitMatches = good_matches.size();
-                mBestFitFileName = fileName;
+            List<KeyPoint> keyPointListSource = mKeyPoints.toList();
+            List<KeyPoint> keyPointListTarget = keyPoints.toList();
+
+            List<Point> sourcePoints = new LinkedList<>();
+            List<Point> targetPoints = new LinkedList<>();
+
+            for (DMatch match: good_matches){
+                sourcePoints.add(keyPointListSource.get(match.queryIdx).pt);
+                targetPoints.add(keyPointListTarget.get(match.trainIdx).pt);
             }
 
-            mCurrentFileIndex ++;
+            if (sourcePoints.size() > 0) {
+                MatOfPoint2f source = new MatOfPoint2f();
+                source.fromList(sourcePoints);
+
+                MatOfPoint2f target = new MatOfPoint2f();
+                target.fromList(targetPoints);
+
+                Mat homographMask = new Mat();
+                Mat homography = Calib3d.findHomography(source, target, Calib3d.RANSAC, 5,
+                        homographMask);
+
+                List<MatOfDMatch> inliers = new LinkedList<>();
+                for (int i = 0; i < homographMask.rows(); i++)
+                    if (homographMask.get(i, 0)[0] > 0)
+                        inliers.add(matches.get(i));
+
+                if (inliers.size() > mBestFitMatches) {
+                    mBestFitMatches = inliers.size();
+                    mBestFitFileName = fileName;
+                }
+
+                if (mBestFitMatches > 250){
+                    mCurrentFileIndex = mDBFileList.length;
+                }
+
+                Log.v(TAG, "RESULTS: " + fileName + ", " + inliers.size());
+            }
+            mCurrentFileIndex++;
         }
     }
 

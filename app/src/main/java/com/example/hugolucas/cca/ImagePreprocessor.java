@@ -55,8 +55,8 @@ public class ImagePreprocessor {
         /* Prepare image for classification */
         Mat equalized = equalize(filteredImage);
 
-        Log.v(TAG, "Image Rows: " + equalized.rows());
-        Log.v(TAG, "Image Columns: " + equalized.cols());
+        Log.v(TAG, "Equalized Image Rows: " + equalized.rows());
+        Log.v(TAG, "Equalized Image Columns: " + equalized.cols());
 
         return equalized;
     }
@@ -68,8 +68,6 @@ public class ImagePreprocessor {
      * @return          equalized Mat
      */
     private Mat equalize(Mat image){
-        Mat equalized = new Mat();
-
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2GRAY);
         Mat destination = new Mat(image.rows(), image.cols(), image.type());
         Imgproc.equalizeHist(image, destination);
@@ -107,10 +105,11 @@ public class ImagePreprocessor {
         Mat image = Highgui.imread(path);
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
 
-        Log.v(TAG, "Image Rows: " + image.rows());
-        Log.v(TAG, "Image Columns: " + image.cols());
-        /*if (image.rows() < image.cols())
-            Core.flip(image.t(), image, 1);*/
+        Log.v(TAG, "Original Image Rows: " + image.rows());
+        Log.v(TAG, "Original Image Columns: " + image.cols());
+        Imgproc.resize(image, image, new Size(image.width() /2, image.height()/2));
+        Log.v(TAG, "Scaled Image Rows: " + image.rows());
+        Log.v(TAG, "Scaled Image Columns: " + image.cols());
 
         return image;
     }

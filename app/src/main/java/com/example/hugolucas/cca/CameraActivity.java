@@ -3,11 +3,9 @@ package com.example.hugolucas.cca;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
@@ -82,6 +80,13 @@ public class CameraActivity extends AppCompatActivity {
         ButterKnife.bind(this);
         requestReadWritePermissions();
         buildCamera();
+    }
+
+    @OnClick(R.id.flash_switch_button)
+    public void onFlashSwitcClicked() {
+        final CameraFragmentApi cameraFragment = getCameraFragment();
+        if (cameraFragment != null)
+            cameraFragment.toggleFlashMode();
     }
 
     /**
@@ -282,17 +287,17 @@ public class CameraActivity extends AppCompatActivity {
 
                     @Override
                     public void onFlashAuto() {
-
+                        mFlashSwitchButton.displayFlashAuto();
                     }
 
                     @Override
                     public void onFlashOn() {
-
+                        mFlashSwitchButton.displayFlashOn();
                     }
 
                     @Override
                     public void onFlashOff() {
-
+                        mFlashSwitchButton.displayFlashOff();
                     }
 
                     @Override
