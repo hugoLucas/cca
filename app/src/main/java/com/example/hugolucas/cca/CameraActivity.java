@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.CheckBox;
 import android.widget.Toast;
 
 import com.github.florent37.camerafragment.CameraFragment;
@@ -56,9 +55,6 @@ public class CameraActivity extends AppCompatActivity {
 
     @BindView(R.id.flash_switch_button)
     FlashSwitchView mFlashSwitchButton;
-
-    @BindView(R.id.keep_photo_checkbox)
-    CheckBox mKeepPhotoCheckBox;
 
     @BindView(R.id.record_button)
     RecordButton mTakePictureButton;
@@ -147,8 +143,7 @@ public class CameraActivity extends AppCompatActivity {
 
     /**
      * Listens for the selection of the record button. Once the button is selected a picture of a
-     * bill should be taken and passed to the classifier. If mKeepPhotoCheckBox is selected the
-     * picture will be saved to the device's memory.
+     * bill should be taken and passed to the classifier.
      */
     @OnClick(R.id.record_button)
     public void onRecordButtonClicked() {
@@ -314,7 +309,6 @@ public class CameraActivity extends AppCompatActivity {
                     @Override
                     public void shouldRotateControls(int degrees) {
                         ViewCompat.setRotation(mFlashSwitchButton, degrees);
-                        ViewCompat.setRotation(mKeepPhotoCheckBox, degrees);
                     }
 
                     @Override
