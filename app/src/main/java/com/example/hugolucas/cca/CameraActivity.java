@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.github.florent37.camerafragment.CameraFragment;
@@ -62,6 +63,10 @@ public class CameraActivity extends AppCompatActivity {
     @BindView(R.id.camera_button_layout)
     View mCameraLayout;
 
+    @BindView(R.id.classification_switch_button)
+    ImageView mClassificationSwitch;
+    boolean mClassifyOrAdd = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,10 +84,20 @@ public class CameraActivity extends AppCompatActivity {
     }
 
     @OnClick(R.id.flash_switch_button)
-    public void onFlashSwitcClicked() {
+    public void onFlashSwitchClicked() {
         final CameraFragmentApi cameraFragment = getCameraFragment();
         if (cameraFragment != null)
             cameraFragment.toggleFlashMode();
+    }
+
+    @OnClick(R.id.classification_switch_button)
+    public void onClassificationSwitchClicked(){
+        if (mClassifyOrAdd)
+            mClassificationSwitch.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+        else
+            mClassificationSwitch.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+
+        mClassifyOrAdd = !mClassifyOrAdd;
     }
 
     /**
@@ -162,7 +177,11 @@ public class CameraActivity extends AppCompatActivity {
                public void onPhotoTaken(byte[] bytes, String filePath) {
                    Toast.makeText(getBaseContext(), "onPhotoTaken " + filePath,
                            Toast.LENGTH_SHORT).show();
-                   startImageProcessing(filePath);
+
+                   if (!mClassifyOrAdd)
+                       startImageProcessing(filePath);
+                   else
+                       startImageAddition(filePath);
                }
            },
                     photoStoragePath, photoLabel);
@@ -178,6 +197,10 @@ public class CameraActivity extends AppCompatActivity {
     public void startImageProcessing(String photoPath){
         startActivityForResult(ProcessingActivity.genIntent(getApplicationContext(),
                 photoPath), PROC_REQ_CODE);
+    }
+
+    public void startImageAddition(String photoPath){
+
     }
 
     @Override

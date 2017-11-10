@@ -28,10 +28,12 @@
             android:paddingTop="10dp">
 
             <ImageView
+                android:id="@+id/classification_switch_button"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_marginStart="10dp"
-                android:src="@mipmap/ic_question_mark" />
+                android:src="@mipmap/ic_question_mark"
+                android:background="@color/colorAccent"/>
 
             <com.github.florent37.camerafragment.widgets.FlashSwitchView
                 android:id="@+id/flash_switch_button"
