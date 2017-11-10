@@ -4,12 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -83,6 +81,7 @@ public class ProcessingActivity extends AppCompatActivity {
 
         mWaveLoadingView = (WaveLoadingView) findViewById(R.id.waveLoadingView);
         updateLoadingIcon("Loading Image Libraries...", 0);
+        mWaveLoadingView.setAmplitudeRatio(10);
         mWaveLoadingView.startAnimation();
     }
 
@@ -171,6 +170,7 @@ public class ProcessingActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             Log.v(TAG, "PP complete");
             updateLoadingIcon("Pre-processing complete...", 25);
+            mWaveLoadingView.setAmplitudeRatio(20);
             new ClassifierAsyncTask().execute();
         }
     }

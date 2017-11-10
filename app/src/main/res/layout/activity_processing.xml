@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -15,11 +15,11 @@
         app:wlv_shapeType="rectangle"
         app:wlv_round_rectangle="true"
         app:wlv_triangle_direction="north"
-        app:wlv_titleCenterStrokeColor="@android:color/holo_blue_dark"
         app:wlv_titleCenterStrokeWidth="3dp"
         app:wlv_titleCenter="Loading..."
-        app:wlv_titleCenterColor="@android:color/white"
+        app:wlv_titleCenterColor="@color/colorPrimary"
         app:wlv_titleCenterSize="24sp"
-        app:wlv_waveAmplitude="30"
-        app:wlv_waveColor="@color/colorAccent"/>
-</LinearLayout>
+        app:wlv_waveAmplitude="10"
+        app:wlv_waveColor="@color/colorAccent" />
+
+</RelativeLayout>
