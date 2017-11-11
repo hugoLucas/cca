@@ -1,12 +1,10 @@
-package com.example.hugolucas.cca.apis;
+package com.example.hugolucas.cca;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-
-import com.example.hugolucas.cca.R;
 
 import butterknife.ButterKnife;
 
@@ -17,6 +15,8 @@ import butterknife.ButterKnife;
 public class ImageAdditionActivity extends AppCompatActivity {
 
     private static String PATH = "photoPath";
+
+    private String mPhotoPath;
 
     /**
      * Creates an intent with the name and path of the photo the user has taken.
@@ -37,5 +37,8 @@ public class ImageAdditionActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_image_addition);
         ButterKnife.bind(this);
+
+        Intent startingIntent = getIntent();
+        mPhotoPath = startingIntent.getStringExtra(PATH);
     }
 }

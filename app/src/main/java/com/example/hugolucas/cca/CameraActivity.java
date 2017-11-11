@@ -20,7 +20,6 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.example.hugolucas.cca.apis.ImageAdditionActivity;
 import com.github.florent37.camerafragment.CameraFragment;
 import com.github.florent37.camerafragment.CameraFragmentApi;
 import com.github.florent37.camerafragment.configuration.Configuration;

@@ -34,6 +34,7 @@
         <activity android:name=".ProcessingActivity"/>
         <activity android:name=".HostActivity"/>
         <activity android:name=".ResultsActivity"/>
+        <activity android:name=".ImageAdditionActivity"/>
     </application>
 
 </manifest>
