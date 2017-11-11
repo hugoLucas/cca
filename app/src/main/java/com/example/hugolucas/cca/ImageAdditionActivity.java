@@ -5,7 +5,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.Spinner;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -17,6 +21,12 @@ public class ImageAdditionActivity extends AppCompatActivity {
     private static String PATH = "photoPath";
 
     private String mPhotoPath;
+
+    @BindView(R.id.addition_banknote_preview)
+    ImageView mBanknotePreview;
+
+    @BindView(R.id.addition_country_selection)
+    Spinner mCountrySpinner;
 
     /**
      * Creates an intent with the name and path of the photo the user has taken.
@@ -40,5 +50,10 @@ public class ImageAdditionActivity extends AppCompatActivity {
 
         Intent startingIntent = getIntent();
         mPhotoPath = startingIntent.getStringExtra(PATH);
+
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.dialog_currencies, R.layout.spinner_text_view);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mCountrySpinner.setAdapter(adapter);
     }
 }
