@@ -95,7 +95,8 @@ public class CameraActivity extends AppCompatActivity {
         if (mClassifyOrAdd)
             mClassificationSwitch.setBackgroundColor(getResources().getColor(R.color.colorAccent));
         else
-            mClassificationSwitch.setBackgroundColor(getResources().getColor(R.color.colorPrimary));
+            mClassificationSwitch.setBackgroundColor(getResources().getColor(
+                    R.color.colorPrimaryLight));
 
         mClassifyOrAdd = !mClassifyOrAdd;
     }
