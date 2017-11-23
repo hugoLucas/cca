@@ -4,7 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_mf_options"
+        android:id="@+id/menu_item_settings"
         app:showAsAction="always"
         android:icon="@drawable/ic_menu_icon"
         android:title="@string/options_menu_title">
