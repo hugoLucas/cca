@@ -23,4 +23,8 @@
         <item name="android:navigationBarColor">@android:color/background_light</item>
     </style>
 
+    <style name="SwitchTheme" parent="Theme.AppCompat.Light">
+        <item name="android:colorControlActivated">@color/colorPrimary</item>
+    </style>
+
 </resources>

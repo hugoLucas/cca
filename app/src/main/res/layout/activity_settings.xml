@@ -38,7 +38,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="10dp"
-            android:layout_alignEnd="@id/settings_header_keep_image" />
+            android:layout_alignEnd="@id/settings_header_keep_image"
+            android:theme="@style/SwitchTheme"/>
 
         <View
             android:layout_height="1dp"
@@ -80,7 +81,8 @@
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
             android:layout_marginTop="10dp"
-            android:layout_alignEnd="@id/settings_header_db_comparison" />
+            android:layout_alignEnd="@id/settings_header_db_comparison"
+            android:theme="@style/SwitchTheme" />
 
         <View
             android:layout_height="1dp"

@@ -8,6 +8,8 @@ package com.example.hugolucas.cca.constants;
 
 public class Settings {
 
+    public static final String CCA = "settings";
+
     public static final String DB = "settings.db";
     public static final String IMG = "settings.image";
     public static final String CUR = "settings.currency";
