@@ -75,7 +75,7 @@
             android:layout_below="@id/settings_header_db_comparison"/>
 
         <Switch
-            android:id="@+id/settings_tap_icon_db_comparison"
+            android:id="@+id/settings_switch_db_comparison"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"

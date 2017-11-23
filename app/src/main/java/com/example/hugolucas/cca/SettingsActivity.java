@@ -44,4 +44,9 @@ public class SettingsActivity extends AppCompatActivity{
     public void keepImage(CompoundButton button, boolean checked){
 
     }
+
+    @OnCheckedChanged(R.id.settings_switch_db_comparison)
+    public void setDatabases(CompoundButton button, boolean checked){
+
+    }
 }
