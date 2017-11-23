@@ -72,6 +72,11 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
 
     private final static int FINE_LOCATION_CODE = 100;
 
+    public static final int MIN = 1000;
+    public static final int MED = 5000;
+    public static final int LRG = 10000;
+    public static final int XLRG = 20000;
+
     @BindView(R.id.mapView) MapView mMapView;
     @BindView(R.id.floating_my_location) FloatingActionButton mSearchButton;
 
@@ -322,12 +327,12 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
 
         Log.v(TAG, "Search radius currently: " + currentRadius);
         if (currentRadius < maxSearchRadius){
-            if (currentRadius == 1000)
-                currentRadius = 5000;
-            else if (currentRadius == 5000)
-                currentRadius = 10000;
-            else if (currentRadius == 10000)
-                currentRadius = 20000;
+            if (currentRadius == MIN)
+                currentRadius = MED;
+            else if (currentRadius == MED)
+                currentRadius = LRG;
+            else if (currentRadius == LRG)
+                currentRadius = XLRG;
 
             mDefaultSearchRadius = String.valueOf(currentRadius);
             Log.v(TAG, "Search radius now: " + mDefaultSearchRadius);
