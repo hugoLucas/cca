@@ -3,6 +3,7 @@ package com.example.hugolucas.cca;
 import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -31,6 +32,7 @@ import android.widget.Toast;
 import com.example.hugolucas.cca.apis.GoogleMaps;
 import com.example.hugolucas.cca.apiObjects.LocationResponse;
 import com.example.hugolucas.cca.apiObjects.MapResult;
+import com.example.hugolucas.cca.constants.Settings;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
@@ -88,8 +90,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
 
     /* Radius is in meters */
     private Circle mCurrentCircle;
-    private String mDefaultSearchRadius = "1000";
-    private int maxSearchRadius = 20000;
+    private String mDefaultSearchRadius;
 
     private boolean mFirstCameraUpdate = true;
     private boolean mUpdateNearbyLocations = true;
@@ -100,13 +101,9 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-    }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        menu.clear();
-        inflater.inflate(R.menu.menu_map_fragment, menu);
+        SharedPreferences settings = getActivity().getSharedPreferences(Settings.CCA, 0);
+        mDefaultSearchRadius = settings.getString(Settings.RAD, Integer.toString(MIN));
     }
 
     @Nullable
@@ -326,7 +323,7 @@ public class MapFragment extends Fragment implements GoogleApiClient.ConnectionC
         int currentRadius = Integer.parseInt(mDefaultSearchRadius);
 
         Log.v(TAG, "Search radius currently: " + currentRadius);
-        if (currentRadius < maxSearchRadius){
+        if (currentRadius < XLRG){
             if (currentRadius == MIN)
                 currentRadius = MED;
             else if (currentRadius == MED)

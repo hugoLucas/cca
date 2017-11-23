@@ -2,6 +2,7 @@ package com.example.hugolucas.cca;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -18,6 +19,7 @@ import android.widget.TextView;
 
 import com.example.hugolucas.cca.apiObjects.FixerResult;
 import com.example.hugolucas.cca.apis.FixerApi;
+import com.example.hugolucas.cca.constants.Settings;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
@@ -58,16 +60,16 @@ public class ExchangeFragment extends Fragment {
     private static final String CODE = "exchange_fragment_code";
     private static final String VAL = "exchange_fragment_value";
 
-    public static final String DECADE = "DECADE";
-    public static final String YEAR = "YEAR";
-    public static final String MONTH = "MONTH";
     public static final String WEEK = "WEEK";
+    public static final String MONTH = "MONTH";
+    public static final String YEAR = "YEAR";
+    public static final String DECADE = "DECADE";
 
     private static int mSourceValue = 10;
 
-    private static String mCurrentInterval = DECADE;
-    private static String mSourceCurrency = "USD";
-    private static String mTargetCurrency = "GBP";
+    private static String mCurrentInterval;
+    private static String mSourceCurrency;
+    private static String mTargetCurrency;
 
     @BindView(R.id.change_target_currency) FloatingActionButton mCurrencyChangeButton;
     @BindView(R.id.toggle_time_interval) FloatingActionButton mTimeToggleButton;
@@ -84,6 +86,10 @@ public class ExchangeFragment extends Fragment {
 
         mSourceCurrency = getArguments().getString(CODE, "USD");
         mSourceValue = Integer.parseInt(getArguments().getString(VAL, "10"));
+
+        SharedPreferences settings = getActivity().getSharedPreferences(Settings.CCA, 0);
+        mTargetCurrency = settings.getString(Settings.CUR, "GBP");
+        mCurrentInterval = settings.getString(Settings.INT, WEEK);
 
         Log.v(TAG, "Passed: " + mSourceCurrency + ", " + mSourceValue);
     }
