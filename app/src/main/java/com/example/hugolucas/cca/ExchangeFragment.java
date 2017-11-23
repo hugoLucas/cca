@@ -58,10 +58,10 @@ public class ExchangeFragment extends Fragment {
     private static final String CODE = "exchange_fragment_code";
     private static final String VAL = "exchange_fragment_value";
 
-    private static final String DECADE = "DECADE";
-    private static final String YEAR = "YEAR";
-    private static final String MONTH = "MONTH";
-    private static final String WEEK = "WEEK";
+    public static final String DECADE = "DECADE";
+    public static final String YEAR = "YEAR";
+    public static final String MONTH = "MONTH";
+    public static final String WEEK = "WEEK";
 
     private static int mSourceValue = 10;
 
@@ -299,7 +299,6 @@ public class ExchangeFragment extends Fragment {
             }
         });
 
-        Dialog d = builder.create();
         builder.create().show();
     }
 
