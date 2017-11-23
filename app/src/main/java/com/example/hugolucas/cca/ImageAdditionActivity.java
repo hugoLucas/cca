@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -15,6 +16,7 @@ import android.widget.Spinner;
 
 import com.shawnlin.numberpicker.NumberPicker;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -23,6 +25,10 @@ import butterknife.ButterKnife;
 import butterknife.OnClick;
 
 /**
+ * This activity allows the User add a new banknote and its information to a separate database
+ * in order to allow the User to define new banknotes to classify against. This feature is an
+ * addition requested by the Professor of my class.
+ *
  * Created by hugolucas on 11/10/17.
  */
 
@@ -96,13 +102,24 @@ public class ImageAdditionActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Adds the picture taken by the User to the new database located in the applications file
+     * directory.
+     */
     @OnClick(R.id.addition_button)
     public void addToDatabase(){
         if (mCurrencyValueSelected > 1 && mCountrySelected != null){
             FileOutputStream out = null;
             try {
-                String photoPath = "/DBPictures/" + mCountrySelected + "_" + mCurrencyValueSelected
-                        + ".jpg";
+
+                File storageDirectory = new File(getFilesDir() + "/DB");
+                if (!storageDirectory.exists()) {
+                    boolean mkdir = storageDirectory.mkdir();
+                    Log.v("HUGO", "Made: " + mkdir);
+                }
+
+                String photoPath = getFilesDir() + "/DB/" +
+                        mCountrySelected + "_" + mCurrencyValueSelected + ".jpg";
                 out = new FileOutputStream(photoPath);
                 mPhotoBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
             } catch (Exception e) {
@@ -115,6 +132,8 @@ public class ImageAdditionActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
             }
+
+            finish();
         }
     }
 
