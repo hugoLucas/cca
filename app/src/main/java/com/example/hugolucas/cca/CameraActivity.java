@@ -14,6 +14,8 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -71,16 +73,17 @@ public class CameraActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        /* Ensures the camera preview is not cutoff at the top */
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         requestReadWritePermissions();
         buildCamera();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_map_fragment, menu);
+        return true;
     }
 
     @OnClick(R.id.flash_switch_button)

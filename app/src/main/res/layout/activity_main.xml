@@ -25,6 +25,7 @@
             android:layout_height="60dp"
             android:layout_alignParentEnd="true"
             android:layout_alignParentTop="true"
+            android:layout_marginTop="20dp"
             android:paddingTop="10dp">
 
             <ImageView
