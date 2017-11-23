@@ -42,6 +42,8 @@
     <string name="settings_sub_header_search_radius">Set default bank search radius</string>
     <string name="settings_header_time_interval">Time Interval</string>
     <string name="settings_sub_header_time_interval">Set default time interval for conversion graph</string>
+    <string name="settings_header_db_comparison">Add User DB</string>
+    <string name="settings_sub_header_db_comparison">Compare unknown banknote against the application database and user defined database</string>
 
     <!-- Dialog Picker Labels -->
     <string-array name="dialog_currencies">
