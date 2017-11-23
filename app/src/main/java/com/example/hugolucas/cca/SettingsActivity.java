@@ -28,12 +28,6 @@ public class SettingsActivity extends AppCompatActivity{
 
     public static final String TAG = "CCA.SettingsActivity";
 
-    @BindView(R.id.settings_switch_db_comparison)
-    Switch mDBSwitch;
-
-    @BindView(R.id.settings_switch_keep_image)
-    Switch mImgSwitch;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
