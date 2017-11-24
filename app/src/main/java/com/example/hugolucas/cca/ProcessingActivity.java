@@ -22,8 +22,10 @@ public class ProcessingActivity extends AppCompatActivity {
 
     /* Keys for putting extras in an Intent */
     private static final String PATH = "com.example.hugolucas.cca.processing_activity.path";
+    private static final String EXTRACT = "com.example.hugolucas.cca.processing_activity.extract";
     private final String TAG = "hugo.ProcessingActivity";
 
+    private boolean mFullyProcess;
     private String mPhotoPath;
     private Mat mBanknote;
 
@@ -61,13 +63,16 @@ public class ProcessingActivity extends AppCompatActivity {
     /**
      * Creates an intent with the name and path of the photo the user has taken.
      *
-     * @param context       the context of the Activity creating this intent
-     * @param photoPath     the Android file path to the photo
-     * @return              an intent containing the photo path and label
+     * @param context           the context of the Activity creating this intent
+     * @param photoPath         the Android file path to the photo
+     * @param fullProcessing    whether to full-process the image or just extract the largest
+     *                          contour
+     * @return                  an intent containing the photo path and label
      */
-    public static Intent genIntent(Context context, String photoPath){
+    public static Intent genIntent(Context context, String photoPath, boolean fullProcessing){
         Intent intent = new Intent(context, ProcessingActivity.class);
         intent.putExtra(PATH, photoPath);
+        intent.putExtra(EXTRACT, fullProcessing);
         return intent;
     }
 
@@ -78,6 +83,7 @@ public class ProcessingActivity extends AppCompatActivity {
 
         Intent startingIntent = getIntent();
         mPhotoPath = startingIntent.getStringExtra(PATH);
+        mFullyProcess = startingIntent.getBooleanExtra(EXTRACT, true);
 
         mWaveLoadingView = (WaveLoadingView) findViewById(R.id.waveLoadingView);
         updateLoadingIcon("Loading Image Libraries...", 0);
