@@ -43,14 +43,10 @@ public class ImagePreprocessor {
      * @return          returns a Mat of the banknote that has been filtered and equalized
      */
     public Mat preprocessImage(String path){
-        /* Load image into application */
-        Mat image = loadImage(path);
-
-        /* Extract the banknote from the image */
-        Mat bankNote = findBankNote(image);
+        Mat banknote = loadAndExtractImage(path);
 
         /* Remove image noise */
-        Mat filteredImage = removeImageNoise(bankNote);
+        Mat filteredImage = removeImageNoise(banknote);
 
         /* Prepare image for classification */
         Mat equalized = equalize(filteredImage);
@@ -59,6 +55,17 @@ public class ImagePreprocessor {
         Log.v(TAG, "Equalized Image Columns: " + equalized.cols());
 
         return equalized;
+    }
+
+    /**
+     * Loads an image from internal storage into Mat format, extracts the largest rectangular
+     * contour found in image.
+     *
+     * @param path      the String path of the image file
+     * @return          a Mat file object of the banknote inside the image
+     */
+    public Mat loadAndExtractImage(String path){
+        return findBankNote(loadImage(path));
     }
 
     /**
