@@ -215,7 +215,7 @@ public class CameraActivity extends AppCompatActivity {
      */
     public void startImageProcessing(String photoPath){
         startActivityForResult(ProcessingActivity.genIntent(getApplicationContext(),
-                photoPath), PROC_REQ_CODE);
+                photoPath, true), PROC_REQ_CODE);
     }
 
     public void startImageAddition(String photoPath){
