@@ -7,16 +7,17 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:colorBackground">@color/background_material_light</item>
         <item name="android:textColorPrimary">@android:color/background_light</item>
+        <item name="android:textColor">@android:color/black</item>
         <item name="android:colorForeground">@color/colorAccent</item>
         <item name="android:navigationBarColor">@color/light</item>
         <item name="android:alertDialogTheme">@style/Theme.AppCompat.Light.Dialog.Alert</item>
     </style>
 
-    <style name="CameraActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
-        <item name="android:windowFullscreen">true</item>
-    </style>
+    <!--<style name="CameraActivityTheme" parent="Theme.AppCompat.Light.NoActionBar">-->
+        <!--<item name="windowActionBar">false</item>-->
+        <!--<item name="windowNoTitle">true</item>-->
+        <!--<item name="android:windowFullscreen">true</item>-->
+    <!--</style>-->
 
     <style name="CCATheme" parent="Theme.AppCompat.NoActionBar" >
         <item name="android:colorBackground">@color/background_material_dark</item>

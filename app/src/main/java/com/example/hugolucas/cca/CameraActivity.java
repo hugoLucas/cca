@@ -93,6 +93,9 @@ public class CameraActivity extends AppCompatActivity {
             case R.id.menu_item_settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 return true;
+            case R.id.menu_items_gallery:
+                startActivity(new Intent(this, DBGalleryActivity.class));
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

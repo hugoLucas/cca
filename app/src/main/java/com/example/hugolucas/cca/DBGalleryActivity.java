@@ -32,9 +32,8 @@ public class DBGalleryActivity extends AppCompatActivity {
 
     private static final String TAG = "DBGalleryActivity";
 
-    @BindView(R.id.db_gallery_recycler_view) private RecyclerView mDBGallery;
+    @BindView(R.id.db_gallery_recycler_view) RecyclerView mDBGallery;
     private RecyclerView.Adapter mDBGalleryAdapter;
-    private RecyclerView.ViewHolder mDBGalleryHolder;
 
     private List<String> mPhotoLabels;
 
@@ -91,7 +90,7 @@ public class DBGalleryActivity extends AppCompatActivity {
         }
     }
 
-    private class DBGalleryHolder extends RecyclerView.ViewHolder{
+    public class DBGalleryHolder extends RecyclerView.ViewHolder{
 
         @BindView(R.id.db_gallery_photo) ImageView mDBGalleryPhoto;
         @BindView(R.id.db_gallery_country) TextView mDBGalleryCountry;

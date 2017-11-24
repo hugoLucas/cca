@@ -5,8 +5,13 @@
 
     <item
         android:id="@+id/menu_item_settings"
-        app:showAsAction="always"
         android:icon="@drawable/ic_menu_icon"
-        android:title="@string/options_menu_title">
-    </item>
+        android:title="@string/options_menu_title"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_items_gallery"
+        app:showAsAction="never"
+        android:title="@string/options_menu_image_gallery"
+        />
 </menu>
