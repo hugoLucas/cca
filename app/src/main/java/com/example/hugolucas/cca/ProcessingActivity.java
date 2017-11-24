@@ -50,7 +50,11 @@ public class ProcessingActivity extends AppCompatActivity {
                     Log.i(TAG, "OpenCV loaded successfully");
                     System.loadLibrary("opencv_java");
                     System.loadLibrary("nonfree");
-                    new PreProcessorAsyncTask().execute(mPhotoPath);
+
+                    if (mFullyProcess)
+                        new PreProcessorAsyncTask().execute(mPhotoPath);
+                    else
+                        new ExtractionAsyncTask().execute(mPhotoPath);
                 } break;
                 default:
                 {
@@ -145,6 +149,34 @@ public class ProcessingActivity extends AppCompatActivity {
             );
             setResult(RESULT_OK, resultIntent);
             finish();
+        }
+    }
+
+    /**
+     * Class handles the extraction of a rectangular banknote from an image. This task will only be
+     * used when the User defines a new banknote to add to their own personal DB. Extraction is
+     * required in this case in order to speed up feature extraction.
+     */
+    private class ExtractionAsyncTask extends AsyncTask<String, Integer, Void>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            Log.v(TAG, "PP pre-execute");
+            updateLoadingIcon("Processing New Image...", 20);
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            String path = strings[0];
+            mProcessor = new ImagePreprocessor();
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
         }
     }
 
