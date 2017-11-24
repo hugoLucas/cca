@@ -45,6 +45,8 @@
     <string name="settings_header_db_comparison">Add User DB</string>
     <string name="settings_sub_header_db_comparison">Compare unknown banknote against the application database and user defined database</string>
     <string name="options_menu_image_gallery">Image Gallery</string>
+    <string name="db_gallery_type">Type:</string>
+    <string name="db_gallery_value">Value:</string>
 
     <!-- Dialog Picker Labels -->
     <string-array name="dialog_currencies">

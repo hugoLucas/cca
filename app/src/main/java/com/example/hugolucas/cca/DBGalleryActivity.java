@@ -1,6 +1,7 @@
 package com.example.hugolucas.cca;
 
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -14,6 +15,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,13 +47,15 @@ public class DBGalleryActivity extends AppCompatActivity {
         setContentView(R.layout.activity_db_gallery);
         ButterKnife.bind(this);
 
-        mDBGallery.setHasFixedSize(true);
-        mDBGallery.setLayoutManager(new LinearLayoutManager(this));
-
-        mDBGalleryAdapter = new DBGalleryAdapter();
-        mDBGallery.setAdapter(mDBGalleryAdapter);
-
         loadLabels();
+
+        if (mPhotoLabels.size() > 0) {
+            mDBGallery.setHasFixedSize(true);
+            mDBGallery.setLayoutManager(new LinearLayoutManager(this));
+
+            mDBGalleryAdapter = new DBGalleryAdapter();
+            mDBGallery.setAdapter(mDBGalleryAdapter);
+        }
     }
 
     private void loadLabels(){
@@ -77,7 +82,9 @@ public class DBGalleryActivity extends AppCompatActivity {
         public void onBindViewHolder(DBGalleryHolder holder, int position) {
             String label = mPhotoLabels.get(position);
             String [] labelContents = label.split("_");
-            holder.bindGalleryEntry(labelContents[0], labelContents[1], loadPhotoBitmap(label));
+            String [] values = labelContents[1].split("\\.");
+
+            holder.bindGalleryEntry(labelContents[0], values[0], loadPhotoBitmap(label));
         }
 
         @Override
@@ -85,19 +92,33 @@ public class DBGalleryActivity extends AppCompatActivity {
             return mPhotoLabels.size();
         }
 
-        public Bitmap loadPhotoBitmap(String label){
-            return null;
+        private Bitmap loadPhotoBitmap(String label){
+            File storageDirectory = new File(getFilesDir() + "/DB");
+            String filePath = storageDirectory.getPath() + "/" + label;
+
+            Log.v(TAG, "Loading image: " + filePath);
+
+            try{
+                FileInputStream bitmapStream = new FileInputStream(new File(filePath));
+                return BitmapFactory.decodeStream(bitmapStream);
+            }catch (FileNotFoundException e){
+                return BitmapFactory.decodeResource(getResources(), R.mipmap.ic_img_error);
+            }
         }
     }
 
     public class DBGalleryHolder extends RecyclerView.ViewHolder{
 
-        @BindView(R.id.db_gallery_photo) ImageView mDBGalleryPhoto;
-        @BindView(R.id.db_gallery_country) TextView mDBGalleryCountry;
-        @BindView(R.id.db_gallery_value) TextView mDBGalleryValue;
+        private ImageView mDBGalleryPhoto;
+        private TextView mDBGalleryCountry;
+        private TextView mDBGalleryValue;
 
         public DBGalleryHolder(View itemView) {
             super(itemView);
+
+            mDBGalleryPhoto = itemView.findViewById(R.id.db_gallery_photo);
+            mDBGalleryCountry = itemView.findViewById(R.id.db_gallery_country);
+            mDBGalleryValue = itemView.findViewById(R.id.db_gallery_value);
         }
 
         public void bindGalleryEntry(String country, String value, Bitmap photo){
