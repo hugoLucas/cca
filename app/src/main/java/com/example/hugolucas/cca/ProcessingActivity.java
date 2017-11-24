@@ -153,6 +153,17 @@ public class ProcessingActivity extends AppCompatActivity {
     }
 
     /**
+     * Returns a new banknote to add to the User DB if no errors were detected.
+     *
+     * @param error     true if error, false otherwise.
+     */
+    public void returnDBResult(boolean error){
+        if (!error){
+
+        }
+    }
+
+    /**
      * Class handles the extraction of a rectangular banknote from an image. This task will only be
      * used when the User defines a new banknote to add to their own personal DB. Extraction is
      * required in this case in order to speed up feature extraction.
@@ -162,21 +173,22 @@ public class ProcessingActivity extends AppCompatActivity {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            Log.v(TAG, "PP pre-execute");
-            updateLoadingIcon("Processing New Image...", 20);
+            updateLoadingIcon("Processing New Image...", 50);
         }
 
         @Override
         protected Void doInBackground(String... strings) {
             String path = strings[0];
             mProcessor = new ImagePreprocessor();
-
+            mBanknote = mProcessor.loadAndExtractImage(path);
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            updateLoadingIcon("Banknote found...", 100);
+
         }
     }
 

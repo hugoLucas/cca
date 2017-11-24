@@ -82,7 +82,6 @@ public class ImagePreprocessor {
        /* CLAHE claghe = Imgproc.createCLAHE(2.0, new Size(8, 8));
         claghe.apply(image, equalized);*/
 
-
         return image;
     }
 
