@@ -2,6 +2,7 @@ package com.example.hugolucas.cca;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -36,6 +37,7 @@ public class DBGalleryActivity extends AppCompatActivity {
     private static final String TAG = "DBGalleryActivity";
 
     @BindView(R.id.db_gallery_recycler_view) RecyclerView mDBGallery;
+    @BindView(R.id.db_gallery_no_images) ImageView mDBGalleryImageView;
     private RecyclerView.Adapter mDBGalleryAdapter;
 
     private List<String> mPhotoLabels;
@@ -55,6 +57,9 @@ public class DBGalleryActivity extends AppCompatActivity {
 
             mDBGalleryAdapter = new DBGalleryAdapter();
             mDBGallery.setAdapter(mDBGalleryAdapter);
+        }else{
+            mDBGallery.setVisibility(View.INVISIBLE);
+            mDBGalleryImageView.setVisibility(View.VISIBLE);
         }
     }
 
