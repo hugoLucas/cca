@@ -1,6 +1,5 @@
 package com.example.hugolucas.cca;
 
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;

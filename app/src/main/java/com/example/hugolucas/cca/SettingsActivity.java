@@ -9,9 +9,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.NumberPicker;
+import android.widget.Switch;
 
 import com.example.hugolucas.cca.constants.Settings;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
@@ -26,12 +28,25 @@ public class SettingsActivity extends AppCompatActivity{
 
     public static final String TAG = "CCA.SettingsActivity";
 
+    @BindView(R.id.settings_switch_db_comparison) Switch mDBSwitch;
+    @BindView(R.id.settings_switch_keep_image) Switch mImgSwitch;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_settings);
         ButterKnife.bind(this);
+
+        setSwitchState(mDBSwitch, Settings.DB);
+        setSwitchState(mImgSwitch, Settings.IMG);
+    }
+
+    public void setSwitchState(Switch mSwitch, String key){
+        SharedPreferences settings = getSharedPreferences(Settings.CCA, 0);
+        boolean checked = settings.getBoolean(key, false);
+
+        mSwitch.setChecked(checked);
     }
 
     @OnClick(R.id.settings_view_history_interval)
