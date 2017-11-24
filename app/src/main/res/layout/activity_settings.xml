@@ -123,11 +123,12 @@
 
         <ImageView
             android:id="@+id/settings_tap_icon_home_currency"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="60dp"
+            android:layout_height="50dp"
             android:layout_alignParentEnd="true"
+            android:layout_marginEnd="5dp"
             android:layout_alignEnd="@id/settings_header_home_currency"
-            android:src="@mipmap/ic_tap_icon"/>
+            />
 
         <View
             android:layout_height="1dp"

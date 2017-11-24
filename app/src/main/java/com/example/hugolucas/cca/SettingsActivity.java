@@ -2,16 +2,23 @@ package com.example.hugolucas.cca;
 
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.NumberPicker;
 import android.widget.Switch;
 
 import com.example.hugolucas.cca.constants.Settings;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -30,6 +37,7 @@ public class SettingsActivity extends AppCompatActivity{
 
     @BindView(R.id.settings_switch_db_comparison) Switch mDBSwitch;
     @BindView(R.id.settings_switch_keep_image) Switch mImgSwitch;
+    @BindView(R.id.settings_tap_icon_home_currency) ImageView mCurrencyImageView;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -40,8 +48,36 @@ public class SettingsActivity extends AppCompatActivity{
 
         setSwitchState(mDBSwitch, Settings.DB);
         setSwitchState(mImgSwitch, Settings.IMG);
+        setInitialCurrencyIconState();
     }
 
+    /**
+     * Loads the previously selected target currency and displays the appropriate icon for the User
+     * on Activity creation.
+     */
+    public void setInitialCurrencyIconState(){
+        SharedPreferences settings = getSharedPreferences(Settings.CCA, 0);
+        String code = settings.getString(Settings.CUR, "USD");
+
+        setCurrencyIcon(code);
+    }
+
+    /**
+     * Displays the country of origin of the current currency denomination selected by the user.
+     *
+     * @param currencyCode  the 3-letter currency code of the current currency
+     */
+    public void setCurrencyIcon(String currencyCode){
+        Bitmap newImage = loadAsset(currencyCode);
+        mCurrencyImageView.setImageBitmap(newImage);
+    }
+
+    /**
+     * Utilizes the current user settings to set the state of the Switch.
+     *
+     * @param mSwitch   the Switch object to set
+     * @param key       the String key needed to access the state of the Switch passed
+     */
     public void setSwitchState(Switch mSwitch, String key){
         SharedPreferences settings = getSharedPreferences(Settings.CCA, 0);
         boolean checked = settings.getBoolean(key, false);
@@ -88,10 +124,13 @@ public class SettingsActivity extends AppCompatActivity{
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
+                String newCurrency = currencyOptions[currencyPicker.getValue()];
                 SharedPreferences settings = getSharedPreferences(Settings.CCA, 0);
                 SharedPreferences.Editor editor = settings.edit();
-                editor.putString(Settings.CUR, currencyOptions[currencyPicker.getValue()]);
+                editor.putString(Settings.CUR, newCurrency);
                 editor.apply();
+
+                setCurrencyIcon(newCurrency);
             }
         });
 
@@ -144,6 +183,12 @@ public class SettingsActivity extends AppCompatActivity{
         editor.apply();
     }
 
+    /**
+     * Helper method that sets common attributes amongst all Dialogs generated in this Activity.
+     *
+     * @param picker the NumberPicker to be displayed
+     * @param array the array of Strings the NumberPicker will display
+     */
     public void buildPicker(NumberPicker picker, String [] array){
         picker.setMinValue(0);
         picker.setValue(0);
@@ -151,5 +196,23 @@ public class SettingsActivity extends AppCompatActivity{
         picker.setDisplayedValues(array);
         picker.setEnabled(true);
         picker.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+    }
+
+    /**
+     * Loads an image asset from Android device memory.
+     *
+     * @param assetName         the file name of the image asset
+     * @return                  a bitmap file of the image asset
+     */
+    private Bitmap loadAsset(String assetName){
+        Log.v(TAG, "Loading asset " + assetName + "...");
+        AssetManager manager = getAssets();
+        try {
+            InputStream imageStream = manager.open("flag_icons/" + assetName + ".png");
+            Log.v(TAG, "Asset " + assetName + " loaded successfully!");
+            return BitmapFactory.decodeStream(imageStream);
+        } catch (IOException e) {
+            return null;
+        }
     }
 }
