@@ -2,12 +2,15 @@ package com.example.hugolucas.cca;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+
+import com.example.hugolucas.cca.constants.Settings;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -31,6 +34,7 @@ public class ProcessingActivity extends AppCompatActivity {
     private final String TAG = "hugo.ProcessingActivity";
 
     private boolean mFullyProcess;
+    private boolean mUserDB;
     private String mPhotoPath;
     private String mNewName;
     private Mat mBanknote;
@@ -102,6 +106,8 @@ public class ProcessingActivity extends AppCompatActivity {
         updateLoadingIcon("Loading Image Libraries...", 0);
         mWaveLoadingView.setAmplitudeRatio(10);
         mWaveLoadingView.startAnimation();
+
+        compareAgainstUserDB();
     }
 
     @Override
@@ -115,6 +121,15 @@ public class ProcessingActivity extends AppCompatActivity {
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
+    }
+
+    /**
+     * Loads user settings to determine whether or not to use the User defined database in the
+     * classification stage
+     */
+    public void compareAgainstUserDB(){
+        SharedPreferences settings = getSharedPreferences(Settings.CCA, 0);
+        mUserDB = settings.getBoolean(Settings.DB, false);
     }
 
     /**
@@ -271,9 +286,12 @@ public class ProcessingActivity extends AppCompatActivity {
             while(!mClassifier.comparisonComplete()){
                 mClassifier.processFile();
                 currentProgress += progressStep;
-
                 publishProgress(currentProgress);
             }
+            if (mUserDB){
+                mClassifier.compareAgainstUserDB();
+            }
+
             mBanknoteClassification = mClassifier.getResults();
 
             return null;
@@ -296,6 +314,9 @@ public class ProcessingActivity extends AppCompatActivity {
                 updateLoadingIcon("Extracting features....", updateValue);
             }else if (updateValue == 50) {
                 updateLoadingIcon("Features extracted...", updateValue);
+            }else if(updateValue == 99){
+                updateLoadingIcon("Comparing against user database...", updateValue);
+                mWaveLoadingView.setWaveBgColor(getResources().getColor(R.color.graph_data_red));
             }else{
                 updateLoadingIcon("Classifying...", updateValue);
             }
