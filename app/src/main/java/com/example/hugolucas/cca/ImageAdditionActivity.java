@@ -13,6 +13,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.shawnlin.numberpicker.NumberPicker;
 
@@ -34,10 +35,11 @@ import butterknife.OnClick;
 
 public class ImageAdditionActivity extends AppCompatActivity {
 
-    private static String PATH = "photoPath";
+    private static final String PATH = "photoPath";
+
+    private static final int PREPROC = 100;
 
     private String mPhotoPath;
-    private Bitmap mPhotoBitmap;
     private String mCountrySelected;
     private int mCurrencyValueSelected;
 
@@ -73,7 +75,7 @@ public class ImageAdditionActivity extends AppCompatActivity {
         Intent startingIntent = getIntent();
         mPhotoPath = startingIntent.getStringExtra(PATH);
 
-        mPhotoBitmap = BitmapFactory.decodeFile(mPhotoPath);
+        Bitmap mPhotoBitmap = BitmapFactory.decodeFile(mPhotoPath);
         mBanknotePreview.setImageBitmap(mPhotoBitmap);
 
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -102,40 +104,25 @@ public class ImageAdditionActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * Adds the picture taken by the User to the new database located in the applications file
-     * directory.
-     */
-    @OnClick(R.id.addition_button)
-    public void addToDatabase(){
-        if (mCurrencyValueSelected > 1 && mCountrySelected != null){
-            FileOutputStream out = null;
-            try {
-
-                File storageDirectory = new File(getFilesDir() + "/DB");
-                if (!storageDirectory.exists()) {
-                    boolean mkdir = storageDirectory.mkdir();
-                    Log.v("HUGO", "Made: " + mkdir);
-                }
-
-                String photoPath = getFilesDir() + "/DB/" +
-                        mCountrySelected + "_" + mCurrencyValueSelected + ".jpg";
-                out = new FileOutputStream(photoPath);
-                mPhotoBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                try {
-                    if (out != null)
-                        out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            finish();
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode){
+            case PREPROC:
+                if (resultCode != RESULT_OK)
+                    Toast.makeText(this, "Error", Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            default:
+                super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
-
+    @OnClick(R.id.addition_button)
+    public void extractBanknoteFromImage(){
+        if (mCurrencyValueSelected > 1 && mCountrySelected != null) {
+            String fileName = mCountrySelected + "_" + mCurrencyValueSelected + ".jpg";
+            startActivityForResult(ProcessingActivity.genIntent(this, mPhotoPath, false, fileName),
+                    PREPROC);
+        }
+    }
 }

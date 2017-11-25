@@ -14,6 +14,10 @@ import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
+
+import java.io.File;
 
 import me.itangqi.waveloadingview.WaveLoadingView;
 
@@ -23,10 +27,12 @@ public class ProcessingActivity extends AppCompatActivity {
     /* Keys for putting extras in an Intent */
     private static final String PATH = "com.example.hugolucas.cca.processing_activity.path";
     private static final String EXTRACT = "com.example.hugolucas.cca.processing_activity.extract";
+    private static final String NAME = "com.example.hugolucas.cca.processing_activity.name";
     private final String TAG = "hugo.ProcessingActivity";
 
     private boolean mFullyProcess;
     private String mPhotoPath;
+    private String mNewName;
     private Mat mBanknote;
 
     private String [] mBanknoteClassification;
@@ -73,10 +79,12 @@ public class ProcessingActivity extends AppCompatActivity {
      *                          contour
      * @return                  an intent containing the photo path and label
      */
-    public static Intent genIntent(Context context, String photoPath, boolean fullProcessing){
+    public static Intent genIntent(Context context, String photoPath, boolean fullProcessing,
+                                   String newFileName){
         Intent intent = new Intent(context, ProcessingActivity.class);
         intent.putExtra(PATH, photoPath);
         intent.putExtra(EXTRACT, fullProcessing);
+        intent.putExtra(NAME, newFileName);
         return intent;
     }
 
@@ -88,6 +96,7 @@ public class ProcessingActivity extends AppCompatActivity {
         Intent startingIntent = getIntent();
         mPhotoPath = startingIntent.getStringExtra(PATH);
         mFullyProcess = startingIntent.getBooleanExtra(EXTRACT, true);
+        mNewName = startingIntent.getStringExtra(NAME);
 
         mWaveLoadingView = (WaveLoadingView) findViewById(R.id.waveLoadingView);
         updateLoadingIcon("Loading Image Libraries...", 0);
@@ -153,14 +162,21 @@ public class ProcessingActivity extends AppCompatActivity {
     }
 
     /**
-     * Returns a new banknote to add to the User DB if no errors were detected.
-     *
-     * @param error     true if error, false otherwise.
+     * Saves extracted banknote to personal User database.
      */
-    public void returnDBResult(boolean error){
-        if (!error){
+    public void saveExtractedMat(){
+        File storageDirectory = new File(getFilesDir() + "/DB");
+        String storagePath = storageDirectory.getPath() + "/" + mNewName;
 
+        if (!storageDirectory.exists()) {
+            boolean makeDirectory = storageDirectory.mkdir();
+            Log.v("HUGO", "Made: " + makeDirectory);
         }
+
+        Imgproc.cvtColor(mBanknote, mBanknote, Imgproc.COLOR_BGR2RGB);
+        Highgui.imwrite(storagePath, mBanknote);
+        setResult(RESULT_OK);
+        finish();
     }
 
     /**
@@ -188,7 +204,7 @@ public class ProcessingActivity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             updateLoadingIcon("Banknote found...", 100);
-
+            saveExtractedMat();
         }
     }
 
