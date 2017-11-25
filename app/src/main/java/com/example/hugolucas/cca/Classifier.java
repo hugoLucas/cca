@@ -123,7 +123,7 @@ public class Classifier {
 
                     if (inliers.size() > mBestFitMatches) {
                         mBestFitMatches = inliers.size();
-                        mBestFitFileName = file;
+                        mBestFitFileName = file.split("\\.")[0];
                     }
 
                     if (mBestFitMatches > 250){
