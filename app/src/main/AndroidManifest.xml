@@ -31,9 +31,12 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ImageAdditionActivity"/>
         <activity android:name=".ProcessingActivity"/>
-        <activity android:name=".HostActivity"/>
+        <activity android:name=".DBGalleryActivity"/>
+        <activity android:name=".SettingsActivity"/>
         <activity android:name=".ResultsActivity"/>
+        <activity android:name=".HostActivity"/>
     </application>
 
 </manifest>

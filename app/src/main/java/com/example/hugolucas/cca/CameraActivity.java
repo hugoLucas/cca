@@ -3,11 +3,9 @@ package com.example.hugolucas.cca;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresPermission;
@@ -16,10 +14,13 @@ import android.support.v4.view.ViewCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.CheckBox;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.github.florent37.camerafragment.CameraFragment;
@@ -59,29 +60,63 @@ public class CameraActivity extends AppCompatActivity {
     @BindView(R.id.flash_switch_button)
     FlashSwitchView mFlashSwitchButton;
 
-    @BindView(R.id.keep_photo_checkbox)
-    CheckBox mKeepPhotoCheckBox;
-
     @BindView(R.id.record_button)
     RecordButton mTakePictureButton;
 
     @BindView(R.id.camera_button_layout)
     View mCameraLayout;
 
+    @BindView(R.id.classification_switch_button)
+    ImageView mClassificationSwitch;
+    boolean mClassifyOrAdd = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        /* Ensures the camera preview is not cutoff at the top */
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
 
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         requestReadWritePermissions();
         buildCamera();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_map_fragment, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_item_settings:
+                startActivity(new Intent(this, SettingsActivity.class));
+                return true;
+            case R.id.menu_items_gallery:
+                startActivity(new Intent(this, DBGalleryActivity.class));
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @OnClick(R.id.flash_switch_button)
+    public void onFlashSwitchClicked() {
+        final CameraFragmentApi cameraFragment = getCameraFragment();
+        if (cameraFragment != null)
+            cameraFragment.toggleFlashMode();
+    }
+
+    @OnClick(R.id.classification_switch_button)
+    public void onClassificationSwitchClicked(){
+        if (mClassifyOrAdd)
+            mClassificationSwitch.setBackgroundColor(getResources().getColor(R.color.colorAccent));
+        else
+            mClassificationSwitch.setBackgroundColor(getResources().getColor(
+                    R.color.colorPrimaryLight));
+
+        mClassifyOrAdd = !mClassifyOrAdd;
     }
 
     /**
@@ -142,8 +177,7 @@ public class CameraActivity extends AppCompatActivity {
 
     /**
      * Listens for the selection of the record button. Once the button is selected a picture of a
-     * bill should be taken and passed to the classifier. If mKeepPhotoCheckBox is selected the
-     * picture will be saved to the device's memory.
+     * bill should be taken and passed to the classifier.
      */
     @OnClick(R.id.record_button)
     public void onRecordButtonClicked() {
@@ -162,7 +196,11 @@ public class CameraActivity extends AppCompatActivity {
                public void onPhotoTaken(byte[] bytes, String filePath) {
                    Toast.makeText(getBaseContext(), "onPhotoTaken " + filePath,
                            Toast.LENGTH_SHORT).show();
-                   startImageProcessing(filePath);
+
+                   if (!mClassifyOrAdd)
+                       startImageProcessing(filePath);
+                   else
+                       startImageAddition(filePath);
                }
            },
                     photoStoragePath, photoLabel);
@@ -177,7 +215,12 @@ public class CameraActivity extends AppCompatActivity {
      */
     public void startImageProcessing(String photoPath){
         startActivityForResult(ProcessingActivity.genIntent(getApplicationContext(),
-                photoPath), PROC_REQ_CODE);
+                photoPath, true, ""), PROC_REQ_CODE);
+    }
+
+    public void startImageAddition(String photoPath){
+        startActivity(new Intent(ImageAdditionActivity.genIntent(getApplicationContext(),
+                photoPath)));
     }
 
     @Override
@@ -282,17 +325,17 @@ public class CameraActivity extends AppCompatActivity {
 
                     @Override
                     public void onFlashAuto() {
-
+                        mFlashSwitchButton.displayFlashAuto();
                     }
 
                     @Override
                     public void onFlashOn() {
-
+                        mFlashSwitchButton.displayFlashOn();
                     }
 
                     @Override
                     public void onFlashOff() {
-
+                        mFlashSwitchButton.displayFlashOff();
                     }
 
                     @Override
@@ -309,7 +352,6 @@ public class CameraActivity extends AppCompatActivity {
                     @Override
                     public void shouldRotateControls(int degrees) {
                         ViewCompat.setRotation(mFlashSwitchButton, degrees);
-                        ViewCompat.setRotation(mKeepPhotoCheckBox, degrees);
                     }
 
                     @Override

@@ -43,22 +43,29 @@ public class ImagePreprocessor {
      * @return          returns a Mat of the banknote that has been filtered and equalized
      */
     public Mat preprocessImage(String path){
-        /* Load image into application */
-        Mat image = loadImage(path);
-
-        /* Extract the banknote from the image */
-        Mat bankNote = findBankNote(image);
+        Mat banknote = loadAndExtractImage(path);
 
         /* Remove image noise */
-        Mat filteredImage = removeImageNoise(bankNote);
+        Mat filteredImage = removeImageNoise(banknote);
 
         /* Prepare image for classification */
         Mat equalized = equalize(filteredImage);
 
-        Log.v(TAG, "Image Rows: " + equalized.rows());
-        Log.v(TAG, "Image Columns: " + equalized.cols());
+        Log.v(TAG, "Equalized Image Rows: " + equalized.rows());
+        Log.v(TAG, "Equalized Image Columns: " + equalized.cols());
 
         return equalized;
+    }
+
+    /**
+     * Loads an image from internal storage into Mat format, extracts the largest rectangular
+     * contour found in image.
+     *
+     * @param path      the String path of the image file
+     * @return          a Mat file object of the banknote inside the image
+     */
+    public Mat loadAndExtractImage(String path){
+        return findBankNote(loadImage(path));
     }
 
     /**
@@ -68,15 +75,12 @@ public class ImagePreprocessor {
      * @return          equalized Mat
      */
     private Mat equalize(Mat image){
-        Mat equalized = new Mat();
-
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2GRAY);
         Mat destination = new Mat(image.rows(), image.cols(), image.type());
         Imgproc.equalizeHist(image, destination);
 
        /* CLAHE claghe = Imgproc.createCLAHE(2.0, new Size(8, 8));
         claghe.apply(image, equalized);*/
-
 
         return image;
     }
@@ -107,10 +111,11 @@ public class ImagePreprocessor {
         Mat image = Highgui.imread(path);
         Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2RGB);
 
-        Log.v(TAG, "Image Rows: " + image.rows());
-        Log.v(TAG, "Image Columns: " + image.cols());
-        /*if (image.rows() < image.cols())
-            Core.flip(image.t(), image, 1);*/
+        Log.v(TAG, "Original Image Rows: " + image.rows());
+        Log.v(TAG, "Original Image Columns: " + image.cols());
+        Imgproc.resize(image, image, new Size(image.width() /2, image.height()/2));
+        Log.v(TAG, "Scaled Image Rows: " + image.rows());
+        Log.v(TAG, "Scaled Image Columns: " + image.cols());
 
         return image;
     }

@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#53788a</color>
-    <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#40c0ff</color>
+    <color name="colorPrimary">#5c6bc0</color>
+    <color name="colorPrimaryDark">#26418f</color>
+    <color name="colorPrimaryLight">#8e99f3</color>
+    <color name="colorAccent">#cfd8dc</color>
     <color name="red_black">#312f2f</color>
     <color name="blue_text">#8500ffee</color>
-    <color name="primary_dark_material_light">#414141</color>
-    <color name="background_material_light">#777676</color>
 
     <!-- Graph Colors in ExchangeFragment -->
     <color name="graph_data_red">#e53935</color>
     <color name="graph_data_blue">#304ffe</color>
     <color name="graph_data_green">#64dd17</color>
     <color name="graph_background_white">#ffffff</color>
+    <color name="light">#8e99f3</color>
+    <color name="primary_material_dark">#5c6bc0</color>
+    <color name="primary_dark_material_dark">#26418f</color>
+    <color name="accent_material_dark">#9ea7aa</color>
+    <color name="background_material_dark">#cfd8dc</color>
 </resources>

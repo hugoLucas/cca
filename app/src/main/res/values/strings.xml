@@ -29,6 +29,24 @@
     <string name="baseUrl">https://maps.googleapis.com/maps/api/place/nearbysearch/json?</string>
     <string name="dummy_info_window_title">Filler Title</string>
     <string name="dummy_info_window_address">Dummy Marker Address</string>
+    <string name="addition_country_of_origin">Country of Origin</string>
+    <string name="addition_local_value">Local Value</string>
+    <string name="add_to_database">Add to Database</string>
+
+    <!-- Settings layout -->
+    <string name="settings_header_keep_image">Keep Image</string>
+    <string name="settings_sub_header_keep_image">Keep currency images after classification</string>
+    <string name="settings_header_home_currency">Home Currency</string>
+    <string name="settings_sub_header_home_currency">Choose default target currency</string>
+    <string name="settings_header_search_radius">Search Radius</string>
+    <string name="settings_sub_header_search_radius">Set default bank search radius</string>
+    <string name="settings_header_time_interval">Time Interval</string>
+    <string name="settings_sub_header_time_interval">Set default time interval for conversion graph</string>
+    <string name="settings_header_db_comparison">Add User DB</string>
+    <string name="settings_sub_header_db_comparison">Compare unknown banknote against the application database and user defined database</string>
+    <string name="options_menu_image_gallery">Image Gallery</string>
+    <string name="db_gallery_type">Type:</string>
+    <string name="db_gallery_value">Value:</string>
 
     <!-- Dialog Picker Labels -->
     <string-array name="dialog_currencies">
@@ -40,6 +58,7 @@
         <item>CNY</item>
         <item>CZK</item>
         <item>DKK</item>
+        <item>EUR</item>
         <item>GBP</item>
         <item>HKD</item>
         <item>HRK</item>
@@ -52,6 +71,7 @@
         <item>MXN</item>
         <item>MYR</item>
         <item>NOK</item>
+        <item>NZD</item>
         <item>PHP</item>
         <item>PLN</item>
         <item>RON</item>
@@ -60,9 +80,8 @@
         <item>SGD</item>
         <item>THB</item>
         <item>TRY</item>
+        <item>USD</item>
         <item>ZAR</item>
-        <item>EUR</item>
-        <item>NZD</item>
     </string-array>
 
 </resources>

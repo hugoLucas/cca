@@ -2,20 +2,25 @@ package com.example.hugolucas.cca;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
-import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
-import android.widget.Toast;
+
+import com.example.hugolucas.cca.constants.Settings;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
 import org.opencv.core.Mat;
+import org.opencv.highgui.Highgui;
+import org.opencv.imgproc.Imgproc;
+
+import java.io.File;
 
 import me.itangqi.waveloadingview.WaveLoadingView;
 
@@ -24,9 +29,14 @@ public class ProcessingActivity extends AppCompatActivity {
 
     /* Keys for putting extras in an Intent */
     private static final String PATH = "com.example.hugolucas.cca.processing_activity.path";
+    private static final String EXTRACT = "com.example.hugolucas.cca.processing_activity.extract";
+    private static final String NAME = "com.example.hugolucas.cca.processing_activity.name";
     private final String TAG = "hugo.ProcessingActivity";
 
+    private boolean mFullyProcess;
+    private boolean mUserDB;
     private String mPhotoPath;
+    private String mNewName;
     private Mat mBanknote;
 
     private String [] mBanknoteClassification;
@@ -50,7 +60,11 @@ public class ProcessingActivity extends AppCompatActivity {
                     Log.i(TAG, "OpenCV loaded successfully");
                     System.loadLibrary("opencv_java");
                     System.loadLibrary("nonfree");
-                    new PreProcessorAsyncTask().execute(mPhotoPath);
+
+                    if (mFullyProcess)
+                        new PreProcessorAsyncTask().execute(mPhotoPath);
+                    else
+                        new ExtractionAsyncTask().execute(mPhotoPath);
                 } break;
                 default:
                 {
@@ -63,13 +77,18 @@ public class ProcessingActivity extends AppCompatActivity {
     /**
      * Creates an intent with the name and path of the photo the user has taken.
      *
-     * @param context       the context of the Activity creating this intent
-     * @param photoPath     the Android file path to the photo
-     * @return              an intent containing the photo path and label
+     * @param context           the context of the Activity creating this intent
+     * @param photoPath         the Android file path to the photo
+     * @param fullProcessing    whether to full-process the image or just extract the largest
+     *                          contour
+     * @return                  an intent containing the photo path and label
      */
-    public static Intent genIntent(Context context, String photoPath){
+    public static Intent genIntent(Context context, String photoPath, boolean fullProcessing,
+                                   String newFileName){
         Intent intent = new Intent(context, ProcessingActivity.class);
         intent.putExtra(PATH, photoPath);
+        intent.putExtra(EXTRACT, fullProcessing);
+        intent.putExtra(NAME, newFileName);
         return intent;
     }
 
@@ -80,10 +99,15 @@ public class ProcessingActivity extends AppCompatActivity {
 
         Intent startingIntent = getIntent();
         mPhotoPath = startingIntent.getStringExtra(PATH);
+        mFullyProcess = startingIntent.getBooleanExtra(EXTRACT, true);
+        mNewName = startingIntent.getStringExtra(NAME);
 
         mWaveLoadingView = (WaveLoadingView) findViewById(R.id.waveLoadingView);
         updateLoadingIcon("Loading Image Libraries...", 0);
+        mWaveLoadingView.setAmplitudeRatio(10);
         mWaveLoadingView.startAnimation();
+
+        compareAgainstUserDB();
     }
 
     @Override
@@ -97,6 +121,15 @@ public class ProcessingActivity extends AppCompatActivity {
             Log.d(TAG, "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
+    }
+
+    /**
+     * Loads user settings to determine whether or not to use the User defined database in the
+     * classification stage
+     */
+    public void compareAgainstUserDB(){
+        SharedPreferences settings = getSharedPreferences(Settings.CCA, 0);
+        mUserDB = settings.getBoolean(Settings.DB, false);
     }
 
     /**
@@ -144,6 +177,53 @@ public class ProcessingActivity extends AppCompatActivity {
     }
 
     /**
+     * Saves extracted banknote to personal User database.
+     */
+    public void saveExtractedMat(){
+        File storageDirectory = new File(getFilesDir() + "/DB");
+        String storagePath = storageDirectory.getPath() + "/" + mNewName;
+
+        if (!storageDirectory.exists()) {
+            boolean makeDirectory = storageDirectory.mkdir();
+            Log.v("HUGO", "Made: " + makeDirectory);
+        }
+
+        Imgproc.cvtColor(mBanknote, mBanknote, Imgproc.COLOR_BGR2RGB);
+        Highgui.imwrite(storagePath, mBanknote);
+        setResult(RESULT_OK);
+        finish();
+    }
+
+    /**
+     * Class handles the extraction of a rectangular banknote from an image. This task will only be
+     * used when the User defines a new banknote to add to their own personal DB. Extraction is
+     * required in this case in order to speed up feature extraction.
+     */
+    private class ExtractionAsyncTask extends AsyncTask<String, Integer, Void>{
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            updateLoadingIcon("Processing New Image...", 50);
+        }
+
+        @Override
+        protected Void doInBackground(String... strings) {
+            String path = strings[0];
+            mProcessor = new ImagePreprocessor();
+            mBanknote = mProcessor.loadAndExtractImage(path);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            updateLoadingIcon("Banknote found...", 100);
+            saveExtractedMat();
+        }
+    }
+
+    /**
      * AsyncTask used to run the ImagePreprocessor. When complete calls the Classifier.
      */
     private class PreProcessorAsyncTask extends AsyncTask<String, Integer, Void>{
@@ -171,6 +251,7 @@ public class ProcessingActivity extends AppCompatActivity {
             super.onPostExecute(aVoid);
             Log.v(TAG, "PP complete");
             updateLoadingIcon("Pre-processing complete...", 25);
+            mWaveLoadingView.setAmplitudeRatio(20);
             new ClassifierAsyncTask().execute();
         }
     }
@@ -205,9 +286,12 @@ public class ProcessingActivity extends AppCompatActivity {
             while(!mClassifier.comparisonComplete()){
                 mClassifier.processFile();
                 currentProgress += progressStep;
-
                 publishProgress(currentProgress);
             }
+            if (mUserDB){
+                mClassifier.compareAgainstUserDB();
+            }
+
             mBanknoteClassification = mClassifier.getResults();
 
             return null;
@@ -230,6 +314,9 @@ public class ProcessingActivity extends AppCompatActivity {
                 updateLoadingIcon("Extracting features....", updateValue);
             }else if (updateValue == 50) {
                 updateLoadingIcon("Features extracted...", updateValue);
+            }else if(updateValue == 99){
+                updateLoadingIcon("Comparing against user database...", updateValue);
+                mWaveLoadingView.setWaveBgColor(getResources().getColor(R.color.graph_data_red));
             }else{
                 updateLoadingIcon("Classifying...", updateValue);
             }
